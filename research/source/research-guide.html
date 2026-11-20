@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ScrollWise Research Guide</title>
+<style>
+/* Printable guide. To change it: edit this file, open it in Chrome, then File → Print → Save as PDF
+   (paper A4, margins Default, "Background graphics" ticked). */
+@font-face { font-family: 'Bricolage'; src: url('../../src/fonts/bricolage-grotesque-regular.woff') format('woff'); font-weight: 400; }
+@font-face { font-family: 'Bricolage'; src: url('../../src/fonts/bricolage-grotesque-bold.woff') format('woff'); font-weight: 700; }
+@page { size: A4; margin: 16mm 16mm 18mm; }
+:root { --ink: #0b1433; --ink2: #465074; --ink3: #5f6889; --blue: #2b59ff; --blue-soft: #e8edff; --mint: #2fd69b; --mint-soft: #e2f8ef; --line: #dde2f0; --bg2: #f3f5fb; }
+* { box-sizing: border-box; }
+html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body { margin: 0; font: 10.5pt/1.5 Inter, 'Segoe UI', Arial, sans-serif; color: var(--ink); }
+h1, h2, h3 { font-family: Bricolage, Inter, Arial, sans-serif; font-weight: 700; line-height: 1.15; margin: 0; }
+h1 { font-size: 30pt; letter-spacing: -0.01em; }
+h2 { font-size: 16pt; margin: 18pt 0 6pt; padding-top: 2pt; break-after: avoid; }
+h2 .n { color: var(--blue); margin-right: 6pt; }
+h3 { font-size: 11.5pt; margin: 10pt 0 3pt; break-after: avoid; }
+p { margin: 0 0 6pt; }
+ul, ol { margin: 0 0 7pt; padding-left: 16pt; }
+li { margin-bottom: 2.5pt; }
+b, strong { font-weight: 650; }
+code { font: 8.6pt/1.3 'DejaVu Sans Mono', Consolas, monospace; background: var(--bg2); padding: 0.5pt 3pt; border-radius: 3pt; }
+.page { break-after: page; }
+.cover { height: 255mm; display: flex; flex-direction: column; }
+.cover .band { background: var(--ink); color: #fff; border-radius: 14pt; padding: 26pt 26pt 24pt; }
+.brand { display: flex; align-items: center; gap: 8pt; font: 600 13pt Inter, Arial, sans-serif; margin-bottom: 30pt; }
+.brand b { color: #8fa6ff; font-weight: 700; }
+.cover h1 { color: #fff; }
+.cover .q { font: 400 15pt/1.35 Bricolage, Inter, sans-serif; color: #c9d2f0; margin-top: 10pt; }
+.cover .meta { margin-top: 22pt; font-size: 10pt; color: #a9b2d6; }
+.glance { display: grid; grid-template-columns: 1fr 1fr; gap: 9pt; margin-top: 18pt; }
+.g { background: var(--bg2); border-radius: 10pt; padding: 10pt 12pt; }
+.g .k { font-size: 8.5pt; font-weight: 700; color: var(--blue); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3pt; }
+.g p { margin: 0; font-size: 10pt; }
+.cover .foot { margin-top: auto; font-size: 9pt; color: var(--ink3); border-top: 1px solid var(--line); padding-top: 8pt; }
+.box { border-radius: 10pt; padding: 10pt 12pt; margin: 8pt 0 10pt; break-inside: avoid; }
+.box.blue { background: var(--blue-soft); }
+.box.mint { background: var(--mint-soft); }
+.box.warn { background: #fff4e0; }
+.box h3 { margin-top: 0; }
+.box p:last-child, .box ul:last-child, .box ol:last-child { margin-bottom: 0; }
+.script { font-style: italic; }
+table { width: 100%; border-collapse: collapse; margin: 6pt 0 10pt; font-size: 9.5pt; break-inside: auto; }
+th, td { border-bottom: 1px solid var(--line); padding: 4pt 5pt; text-align: left; vertical-align: top; }
+th { background: var(--bg2); font-weight: 650; }
+tr { break-inside: avoid; }
+td.col { width: 22pt; color: var(--ink3); font-weight: 650; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 12pt; }
+.steps { counter-reset: s; list-style: none; padding: 0; }
+.steps > li { counter-increment: s; position: relative; padding-left: 24pt; margin-bottom: 6pt; break-inside: avoid; }
+.steps > li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 16pt; height: 16pt; border-radius: 50%; background: var(--blue); color: #fff; font: 700 8.5pt/16pt Inter, Arial; text-align: center; }
+.small { font-size: 9pt; color: var(--ink2); }
+.chart { display: grid; grid-template-columns: 1fr 1fr; gap: 9pt; margin: 6pt 0 10pt; }
+.chart .c { border: 1px solid var(--line); border-radius: 10pt; padding: 9pt 11pt; break-inside: avoid; }
+.chart .c b { display: block; margin-bottom: 2pt; }
+.chart svg { display: block; width: 100%; height: 62pt; margin: 4pt 0; }
+.sheet th, .sheet td { border: 1px solid #b9c1d9; height: 21pt; }
+.sheet th { font-size: 8.3pt; line-height: 1.2; }
+.sheet td { font-size: 9pt; }
+.tick { display: inline-block; width: 8pt; height: 8pt; border: 1px solid var(--ink2); border-radius: 2pt; margin-right: 4pt; vertical-align: -0.5pt; }
+.hl { color: var(--blue); }
+.dict th, .dict td { padding: 2.2pt 5pt; font-size: 8.8pt; }
+.dict code { font-size: 8pt; }
+.tight th, .tight td { height: 17pt; padding: 2.5pt 5pt; }
+.tight td.tall { height: 30pt; }
+</style>
+</head>
+<body>
+
+<!-- ============ COVER ============ -->
+<section class="page cover">
+  <div class="band">
+    <div class="brand"><svg viewBox="0 0 40 40" width="26" height="26"><rect width="40" height="40" rx="12" fill="#1C2650"/><path d="M11.5 29.5c5 2.2 15.5 1.6 15.5-4.4 0-6.4-14-3.4-14-9.6 0-4.4 5.2-5.6 9.4-4.6" fill="none" stroke="#5B7CFF" stroke-width="3.6" stroke-linecap="round"/><circle cx="28.6" cy="11.4" r="3.5" fill="#3EE3A6"/></svg><span>scroll<b>wise</b></span></div>
+    <h1>Research Guide</h1>
+    <p class="q">Does an intentional stopping point change how teenagers browse social media?</p>
+    <p class="meta">For the ScrollWise student team · Version 1 · November 2026<br>Use with ScrollWise research mode (Settings → About and privacy → Research mode)</p>
+  </div>
+  <div class="glance">
+    <div class="g"><p class="k">What we compare</p><p><b>Mode A:</b> a conventional feed that keeps loading.<br><b>Mode B:</b> the ScrollWise feed with limited posts and a stopping point.</p></div>
+    <div class="g"><p class="k">Design</p><p>Every participant tries <b>both</b> feeds. Half do A first, half do B first (counterbalancing).</p></div>
+    <div class="g"><p class="k">Who</p><p>Volunteer students aged 13–17 at your school, with school approval and parental consent where required. Aim for 20–40.</p></div>
+    <div class="g"><p class="k">Time</p><p>About 15 minutes per participant, including two feeds of up to 5 minutes each and short questions.</p></div>
+    <div class="g"><p class="k">What we record</p><p>Browsing time, posts viewed, how each feed ended, choices at the stopping point and short neutral questions. Anonymous codes only.</p></div>
+    <div class="g"><p class="k">What we report</p><p>Honest descriptive results with their limits. A small study gives early signals, not proof.</p></div>
+  </div>
+  <div class="box warn" style="margin-top:14pt">
+    <h3>Before anything else</h3>
+    <p>Show this guide to a teacher and get your <b>school’s approval</b> before you invite anyone. Follow your school’s rules about <b>parental consent</b>. Taking part must always be voluntary.</p>
+  </div>
+  <p class="foot">Contents: 1 Research question and hypothesis · 2 Variables · 3 Participants and recruitment · 4 Consent, privacy and safety · 5 Equipment and set-up · 6 Counterbalancing · 7 Step-by-step procedure · 8 Collecting and exporting data · 9 Data dictionary · 10 Analysis and charts · 11 Interpreting honestly · 12 Limitations · Appendix: order list, recording sheet, results tables, checklists</p>
+</section>
+
+<!-- ============ 1–2 ============ -->
+<section>
+<h2><span class="n">1</span>Research question and hypothesis</h2>
+<div class="box blue">
+  <p><b>Research question.</b> Does an intentional stopping point (Mode B) change how long teenagers browse a social media feed, how many posts they view and how in control they feel, compared with a conventional continuously loading feed (Mode A)?</p>
+</div>
+<p><b>Hypothesis (H1).</b> With the stopping point (Mode B), participants will browse for less time and view fewer posts than with the continuous feed (Mode A), and will rate stopping as easier and feel more in control.</p>
+<p><b>Null hypothesis (H0).</b> There is no difference between Mode A and Mode B in browsing time, posts viewed, ease of stopping or feeling of control.</p>
+<p class="small">A hypothesis is a prediction to test, not something to prove. Your job is to collect fair data and report what it shows, even if it doesn’t support the hypothesis.</p>
+
+<h2><span class="n">2</span>Variables</h2>
+<h3>Independent variable (what we change)</h3>
+<p>The type of feed: <b>Mode A</b> (continuous feed that keeps loading posts) or <b>Mode B</b> (ScrollWise feed that stops after a set number of posts or the time the participant chose, then offers “I’m done” or “Continue intentionally”).</p>
+<h3>Dependent variables (what we measure)</h3>
+<table>
+<tr><th>Measure</th><th>How ScrollWise records it</th></tr>
+<tr><td>Browsing time</td><td>Seconds the feed was on screen (<code>duration_seconds</code>). Time on the stopping screen isn’t counted.</td></tr>
+<tr><td>Posts viewed</td><td>Posts at least half on screen (<code>posts_viewed</code>).</td></tr>
+<tr><td>How the feed ended</td><td>Stopped by choice or reached the maximum time (<code>stopped_voluntarily</code>, <code>max_time_reached</code>).</td></tr>
+<tr><td>Choices at the stopping point (Mode B)</td><td>Whether the stopping point appeared and whether the participant continued (<code>reached_stopping_point</code>, <code>chose_to_continue</code>, <code>continue_decisions</code>).</td></tr>
+<tr><td>Awareness of time</td><td>Their guess of minutes spent, compared with the real time, plus a 1–5 rating.</td></tr>
+<tr><td>Feeling of control, ease of stopping, overall experience</td><td>1–5 ratings after each feed.</td></tr>
+<tr><td>Willingness to use again</td><td>One 1–5 rating after both feeds.</td></tr>
+</table>
+<h3>Controlled variables (what we keep the same)</h3>
+<div class="two">
+<ul>
+<li>The same posts and post design in both modes. ScrollWise shuffles the posts once per participant and uses that order for both feeds (the second feed starts halfway through it).</li>
+<li>The same maximum time for both feeds (we recommend 5 minutes) and the same Mode B post limit (we recommend 8) for the whole study.</li>
+<li>Comments and profiles are switched off in both modes.</li>
+</ul>
+<ul>
+<li>The same device (or the same model), brightness and volume, with notifications turned off.</li>
+<li>The same quiet room and seating, and a similar time of day where possible.</li>
+<li>The same spoken instructions (use the script in section 7) and no hints about which feed is “better”.</li>
+</ul>
+</div>
+</section>
+
+<!-- ============ 3–4 ============ -->
+<section>
+<h2><span class="n">3</span>Participants and recruitment</h2>
+<ul>
+<li><b>Who:</b> students aged 13–17 at your school who use social media, recruited with a teacher’s permission.</li>
+<li><b>How many:</b> at least 20, ideally 30–40, with an equal number doing A first and B first. Because everyone tries both feeds, each person gives you a direct A-versus-B comparison.</li>
+<li><b>How to invite:</b> a short announcement in class or a poster, approved by your teacher. Say what’s involved (about 15 minutes, browsing a sample feed, a few questions), that it’s anonymous and that it’s completely voluntary.</li>
+<li><b>Fair mix:</b> try to include different classes and year groups, not only your friends, so your sample isn’t one small group.</li>
+<li><b>Who shouldn’t take part:</b> members of the ScrollWise team and anyone who knows the hypothesis, because they might act differently.</li>
+<li><b>No pressure:</b> don’t offer prizes or marks that would make people feel they have to take part.</li>
+</ul>
+<p class="small">Realistic schedule: with two devices and two researchers per device, you can test about 8 people in a 45-minute lunch break. Three or four sessions are enough for 30 participants.</p>
+
+<h2><span class="n">4</span>Consent, privacy and safety</h2>
+<div class="box mint">
+<h3>The rules we always follow</h3>
+<ul>
+<li><b>School approval first,</b> and parental consent wherever your school requires it (often for students under 16).</li>
+<li><b>Voluntary:</b> anyone can say no, stop during the test or leave without giving a reason. Tell them this before they start.</li>
+<li><b>Anonymous:</b> use codes (P001, P002…). Never write a name, email, phone number, class or age into ScrollWise or onto the recording sheet.</li>
+<li><b>Only what we need:</b> research mode records timings, counts and the optional answers. Nothing else.</li>
+<li><b>Safe content:</b> the feed shows fictional sample posts suitable for teenagers. If someone feels uncomfortable, stop.</li>
+<li><b>Supervision:</b> run sessions with a teacher or another responsible adult nearby.</li>
+</ul>
+</div>
+<h3>Withdrawing later</h3>
+<p>Don’t keep a list that links codes to names. If someone might want to withdraw their data later, give them a slip with their code. If they bring it back, delete their rows from your spreadsheet (and in research mode, if the data is still on the device).</p>
+<h3>Looking after the data</h3>
+<ul>
+<li>Export the CSV after each session and save it in a school account (for example your school’s OneDrive or Google Drive), not on a personal phone.</li>
+<li>After checking the file opens, use <b>Delete all results</b> in research mode so the device holds no data.</li>
+<li>Only share summaries (averages, charts). Don’t publish individual comments that could identify someone.</li>
+<li>Delete the raw files when the project ends, unless your teacher asks you to keep them.</li>
+</ul>
+</section>
+
+<!-- ============ 5–6 ============ -->
+<section>
+<h2><span class="n">5</span>Equipment and set-up</h2>
+<div class="two">
+<div>
+<h3>You need</h3>
+<ul>
+<li>One or two phones or tablets (ideally the same model), charged, with internet.</li>
+<li>“Do Not Disturb” on, brightness fixed, sound off.</li>
+<li>The ScrollWise website open in the browser.</li>
+<li>Printed: this guide’s script, the order list and the recording sheet (appendix).</li>
+<li>A quiet space where the participant can browse without being watched closely.</li>
+</ul>
+</div>
+<div>
+<h3>Research mode settings</h3>
+<ol>
+<li>Open <b>Settings → About and privacy → Research mode</b>.</li>
+<li><b>Maximum time per feed:</b> 5 min.</li>
+<li><b>Posts before the stopping point:</b> 8.</li>
+<li><b>Order:</b> Alternate (recommended), or set by hand from the order list when you use more than one device.</li>
+<li>Keep these settings the same for the whole study.</li>
+</ol>
+</div>
+</div>
+<p class="small">Run one practice session with a team member first, then delete that practice record (use the bin icon next to it) so it doesn’t end up in your results.</p>
+
+<h2><span class="n">6</span>Counterbalancing</h2>
+<p>People often behave differently in the second feed, simply because it’s second: they may be more bored, more relaxed or more familiar with the posts. If everyone did Mode A first, any difference could come from the order, not from the stopping point.</p>
+<p><b>The fix:</b> half the participants do <b>A then B</b> and half do <b>B then A</b>. Order effects then affect both modes equally.</p>
+<ul>
+<li><b>One device:</b> leave Order on <b>Alternate</b>. ScrollWise gives the 1st participant A→B, the 2nd B→A, and so on.</li>
+<li><b>Two or more devices:</b> each device alternates on its own, which can make the groups uneven. Use the printed <b>order list</b> (appendix) and choose “A then B” or “B then A” by hand for each code.</li>
+<li><b>Check:</b> the results overview shows how many participants did A→B and B→A. Keep them equal.</li>
+<li>If a participant has to stop after the first feed, you can finish the missing feed later: enter the same code and ScrollWise runs only the missing feed, in the same order.</li>
+</ul>
+</section>
+
+<!-- ============ 7 ============ -->
+<section>
+<h2><span class="n">7</span>Step-by-step procedure</h2>
+<p>About 15 minutes per participant. One researcher runs the session; another can welcome the next person.</p>
+<ol class="steps">
+<li><b>Welcome and explain.</b> Read the script below. Check they’re happy to take part and remind them they can stop at any time.</li>
+<li><b>Set up.</b> In research mode, check the code (ScrollWise suggests the next one, e.g. P007) and the order. Tick the confirmations and tap <b>Start</b>. Write the code and order on the recording sheet.</li>
+<li><b>Hand over the device.</b> The participant reads “Before you start” and taps Continue.</li>
+<li><b>Feed 1.</b> They browse as they normally would. Stay quiet, don’t watch over their shoulder and don’t comment. In Mode B they first choose how long they’d like to browse. The feed ends when they tap “I’m done” or at the maximum time.</li>
+<li><b>Questions about feed 1.</b> They answer or skip. ScrollWise saves the record as soon as they tap Next.</li>
+<li><b>Feed 2 and its questions,</b> the same way.</li>
+<li><b>Final question.</b> One question about both feeds and an optional comment. Then the thank-you screen.</li>
+<li><b>Hand back and note.</b> Take the device back and tap “Researcher: back to setup”. On the recording sheet, note anything unusual (an interruption, a question they asked), using the code only.</li>
+</ol>
+<div class="box blue">
+<h3>Script to read out</h3>
+<p class="script">“Thanks for helping with our project. You’ll try two versions of a sample social media feed, one after the other. The posts and people are made up. Please browse the way you normally would, for as long as you like. You can stop whenever you want by tapping ‘I’m done’, and each feed also ends by itself after a few minutes. After each feed there are a few short questions. There are no right or wrong answers, and nothing is linked to your name. You can stop taking part at any time. Do you have any questions?”</p>
+</div>
+<p class="small">Don’t explain the hypothesis or say which feed is ScrollWise’s until after the participant has finished. If they ask, say you can explain afterwards.</p>
+</section>
+
+<!-- ============ 8–9 ============ -->
+<section>
+<h2><span class="n">8</span>Collecting and exporting data</h2>
+<p>Each feed is saved in the browser as soon as its questions are answered or skipped. The data stays on that device until you export it. At the end of every session:</p>
+<ol>
+<li>Open research mode and scroll to <b>Results on this device</b>.</li>
+<li>Export the data:
+  <ul>
+    <li><b>Computer or Android:</b> tap <b>Download CSV</b>. The file <code>scrollwise-research-YYYY-MM-DD.csv</code> goes to your Downloads folder.</li>
+    <li><b>iPhone or iPad:</b> tap <b>Share CSV</b> (if shown) and choose Save to Files or your school email. <b>Download CSV</b> also works and saves to Files → Downloads.</li>
+    <li><b>If neither works:</b> tap <b>Copy CSV</b> and paste into a note or spreadsheet, or tap <b>Show CSV text</b> and copy it by hand.</li>
+  </ul>
+</li>
+<li>Open the file in Excel or Google Sheets (Google Sheets: File → Import → Upload) and check the rows are there.</li>
+<li>Save it to your school account, then tap <b>Delete all results</b> on the device.</li>
+<li>Combining several devices or days: copy the rows (without the header) from each file under one header row. Every row has a unique <code>record_id</code>, so you can spot accidental duplicates.</li>
+</ol>
+<p class="small">An empty file with the right columns is included as <code>research/sample-structure.csv</code>. It contains no participant data.</p>
+
+<h2><span class="n">9</span>Data dictionary</h2>
+<p>One row per feed, so each participant who finished has two rows. Column letters are as they appear in a spreadsheet.</p>
+<table class="dict">
+<tr><th>Col.</th><th>Column</th><th>Meaning</th></tr>
+<tr><td class="col">A</td><td><code>participant_id</code></td><td>Anonymous code, e.g. P001</td></tr>
+<tr><td class="col">B</td><td><code>order</code></td><td>AB = Mode A first, BA = Mode B first</td></tr>
+<tr><td class="col">C</td><td><code>position</code></td><td>1 = first feed this participant tried, 2 = second</td></tr>
+<tr><td class="col">D</td><td><code>mode</code></td><td>A = continuous feed, B = ScrollWise feed</td></tr>
+<tr><td class="col">E</td><td><code>condition</code></td><td>Mode described in words</td></tr>
+<tr><td class="col">F</td><td><code>started_at</code></td><td>Date and time the feed started (UTC)</td></tr>
+<tr><td class="col">G</td><td><code>max_minutes</code></td><td>Maximum test time, the same for both modes</td></tr>
+<tr><td class="col">H</td><td><code>intended_minutes</code></td><td>Mode B: browsing time the participant chose</td></tr>
+<tr><td class="col">I</td><td><code>post_limit</code></td><td>Mode B: posts before the stopping point</td></tr>
+<tr><td class="col">J</td><td><code>duration_seconds</code></td><td>Actual browsing time (only while the feed was on screen)</td></tr>
+<tr><td class="col">K</td><td><code>posts_viewed</code></td><td>Posts at least half on screen</td></tr>
+<tr><td class="col">L</td><td><code>unique_posts_viewed</code></td><td>Different posts viewed (Mode A can repeat posts)</td></tr>
+<tr><td class="col">M</td><td><code>stopped_voluntarily</code></td><td>yes = the participant chose to stop</td></tr>
+<tr><td class="col">N</td><td><code>max_time_reached</code></td><td>yes = the test ended at the maximum time</td></tr>
+<tr><td class="col">O</td><td><code>reached_stopping_point</code></td><td>Mode B: yes = the stopping point appeared</td></tr>
+<tr><td class="col">P</td><td><code>chose_to_continue</code></td><td>Mode B: yes = continued at least once</td></tr>
+<tr><td class="col">Q</td><td><code>continue_decisions</code></td><td>Mode B: how many times they continued</td></tr>
+<tr><td class="col">R</td><td><code>end_reason</code></td><td>How the feed ended</td></tr>
+<tr><td class="col">S</td><td><code>q_time_estimate_minutes</code></td><td>Participant’s guess of minutes spent (optional)</td></tr>
+<tr><td class="col">T</td><td><code>q_time_awareness_1to5</code></td><td>1 = not aware … 5 = very aware</td></tr>
+<tr><td class="col">U</td><td><code>q_control_1to5</code></td><td>1 = no control … 5 = full control</td></tr>
+<tr><td class="col">V</td><td><code>q_ease_of_stopping_1to5</code></td><td>1 = very difficult … 5 = very easy</td></tr>
+<tr><td class="col">W</td><td><code>q_overall_1to5</code></td><td>1 = very negative … 5 = very positive</td></tr>
+<tr><td class="col">X</td><td><code>q_use_again_1to5</code></td><td>Asked once after both feeds (on the participant’s last row)</td></tr>
+<tr><td class="col">Y</td><td><code>comment</code></td><td>Optional comment (asked once, after both feeds)</td></tr>
+<tr><td class="col">Z</td><td><code>record_id</code></td><td>Unique ID of this row</td></tr>
+<tr><td class="col">AA</td><td><code>app_version</code></td><td>Research mode version</td></tr>
+</table>
+</section>
+
+<!-- ============ 10 ============ -->
+<section>
+<h2><span class="n">10</span>Analysis and suggested charts</h2>
+<h3>Step 1: clean the data</h3>
+<ul>
+<li>Delete practice rows and rows from anyone who withdrew.</li>
+<li>For the main comparison, keep participants with <b>both</b> feeds (two rows with the same code). Also report how many were left out and why.</li>
+</ul>
+<h3>Step 2: describe each mode</h3>
+<table>
+<tr><th>What</th><th>Google Sheets / Excel formula (data rows 2–200)</th></tr>
+<tr><td>Average browsing time, Mode A (minutes)</td><td><code>=AVERAGEIFS(J2:J200, D2:D200, "A")/60</code></td></tr>
+<tr><td>Median browsing time, Mode B (minutes)</td><td><code>=MEDIAN(FILTER(J2:J200, D2:D200="B"))/60</code> (Google Sheets, Excel 365)</td></tr>
+<tr><td>Average posts viewed, Mode A</td><td><code>=AVERAGEIFS(K2:K200, D2:D200, "A")</code></td></tr>
+<tr><td>% who stopped by choice, Mode A</td><td><code>=COUNTIFS(D2:D200,"A",M2:M200,"yes")/COUNTIF(D2:D200,"A")</code></td></tr>
+<tr><td>% who continued at the stopping point (B)</td><td><code>=COUNTIFS(D2:D200,"B",P2:P200,"yes")/COUNTIF(D2:D200,"B")</code></td></tr>
+<tr><td>Average “ease of stopping”, Mode B</td><td><code>=AVERAGEIFS(V2:V200, D2:D200, "B")</code> (blank answers are ignored)</td></tr>
+</table>
+<h3>Step 3: compare each person with themselves</h3>
+<p>Make a small table with one row per participant: their Mode A time, their Mode B time and the difference (B − A). Count how many browsed less in Mode B, and work out the average difference. This paired comparison is the strongest part of your design. You can also compare the A→B and B→A groups to check for order effects, and work out each person’s time-guess error (their guess minus their real time).</p>
+<p class="small">Optional, if your maths teacher can help: a paired t-test or a Wilcoxon signed-rank test tells you how likely a difference this big would be by chance. Descriptive results are fine on their own if you explain them carefully.</p>
+<h3>Step 4: suggested charts</h3>
+<div class="chart">
+  <div class="c"><b>1. Average browsing time by mode</b><span class="small">Bar chart, one bar per mode. Add each person as a dot if your tool allows.</span>
+    <svg viewBox="0 0 200 62"><line x1="10" y1="56" x2="190" y2="56" stroke="#b9c1d9"/><rect x="45" y="14" width="34" height="42" rx="3" fill="#5f6889"/><rect x="121" y="30" width="34" height="26" rx="3" fill="#2b59ff"/><text x="62" y="10" font-size="7" text-anchor="middle" fill="#465074">A</text><text x="138" y="26" font-size="7" text-anchor="middle" fill="#465074">B</text></svg></div>
+  <div class="c"><b>2. Each participant, A to B</b><span class="small">A “slope chart”: one line per person from their A time to their B time.</span>
+    <svg viewBox="0 0 200 62"><line x1="50" y1="4" x2="50" y2="58" stroke="#b9c1d9"/><line x1="150" y1="4" x2="150" y2="58" stroke="#b9c1d9"/><g stroke="#2b59ff" stroke-width="1.4" fill="#2b59ff"><line x1="50" y1="12" x2="150" y2="34"/><line x1="50" y1="20" x2="150" y2="40"/><line x1="50" y1="30" x2="150" y2="26"/><line x1="50" y1="42" x2="150" y2="48"/></g><text x="50" y="62" font-size="6" text-anchor="middle" fill="#465074">A</text><text x="150" y="62" font-size="6" text-anchor="middle" fill="#465074">B</text></svg></div>
+  <div class="c"><b>3. How the feeds ended</b><span class="small">Stacked bars: stopped by choice vs reached the maximum time, for each mode.</span>
+    <svg viewBox="0 0 200 62"><rect x="30" y="10" width="140" height="16" rx="3" fill="#e8edff"/><rect x="30" y="10" width="70" height="16" rx="3" fill="#2b59ff"/><rect x="30" y="34" width="140" height="16" rx="3" fill="#e8edff"/><rect x="30" y="34" width="120" height="16" rx="3" fill="#2b59ff"/><text x="22" y="21" font-size="7" text-anchor="end" fill="#465074">A</text><text x="22" y="45" font-size="7" text-anchor="end" fill="#465074">B</text></svg></div>
+  <div class="c"><b>4. Questions, side by side</b><span class="small">Grouped bars of the average 1–5 answer for each question, Mode A next to Mode B.</span>
+    <svg viewBox="0 0 200 62"><line x1="10" y1="56" x2="190" y2="56" stroke="#b9c1d9"/><g><rect x="22" y="26" width="12" height="30" fill="#5f6889"/><rect x="36" y="18" width="12" height="38" fill="#2b59ff"/><rect x="66" y="30" width="12" height="26" fill="#5f6889"/><rect x="80" y="16" width="12" height="40" fill="#2b59ff"/><rect x="110" y="24" width="12" height="32" fill="#5f6889"/><rect x="124" y="20" width="12" height="36" fill="#2b59ff"/><rect x="154" y="22" width="12" height="34" fill="#5f6889"/><rect x="168" y="22" width="12" height="34" fill="#2b59ff"/></g></svg></div>
+</div>
+<p class="small">These sketches only show the chart type: they contain no data. Use your own results, label the axes and write the number of participants (n) under every chart.</p>
+</section>
+
+<!-- ============ 11–12 ============ -->
+<section>
+<h2><span class="n">11</span>Interpreting the findings honestly</h2>
+<ul>
+<li><b>Describe, don’t over-claim.</b> Write “In our sample of [number] students, participants browsed for an average of [time] less with the stopping point”, filled in with your real results, not “ScrollWise is proven to reduce screen time”.</li>
+<li><b>Report everything,</b> including results that don’t support the hypothesis, and how many people took part.</li>
+<li><b>Mode B is limited by design.</b> Part of a shorter time in Mode B comes from the limit itself. The more interesting questions are whether people stopped at the stopping point or chose to continue, and how in control they felt.</li>
+<li><b>The maximum time is a ceiling.</b> If many people reached 5 minutes in Mode A, the real difference could be bigger than your data shows. Say how many reached the maximum.</li>
+<li><b>Small differences may be chance.</b> With a small group, a difference of a few seconds means very little.</li>
+<li><b>Look for order effects.</b> If the second feed is always shorter, mention it.</li>
+<li><b>People act differently when observed,</b> and may give the answers they think you want. Neutral questions and a quiet setting help, but can’t remove this completely.</li>
+</ul>
+
+<h2><span class="n">12</span>Limitations</h2>
+<ul>
+<li>A short supervised test isn’t the same as everyday use at home, over weeks.</li>
+<li>The feed contains fictional sample posts, not participants’ own friends and interests, so it may be less engaging than a real app.</li>
+<li>The sample is small and from one school, so results may not apply to all teenagers.</li>
+<li>Mode A repeats posts once it has shown all the sample posts. With a small sample feed this happens sooner.</li>
+<li>Answers are self-reported and can be affected by mood, the setting or wanting to help the team.</li>
+<li>Results recorded on different devices can’t be compared if the settings were different. Keep them the same.</li>
+</ul>
+<div class="box blue">
+<h3>A good conclusion sounds like this</h3>
+<p>“Our small study suggests that… These results are an early signal, not proof, because… Next time we would…”</p>
+</div>
+</section>
+
+<!-- ============ APPENDIX: order list ============ -->
+<section class="page" style="break-before: page">
+<h2><span class="n">A</span>Order list (for more than one device)</h2>
+<p class="small">Tick each code when it’s used. Codes alternate A→B and B→A, so both orders stay balanced however many people take part.</p>
+<table class="sheet">
+<tr><th>Code</th><th>Order</th><th>Used</th><th>Code</th><th>Order</th><th>Used</th><th>Code</th><th>Order</th><th>Used</th></tr>
+<tr><td>P001</td><td>A then B</td><td></td><td>P021</td><td>A then B</td><td></td><td>P041</td><td>A then B</td><td></td></tr>
+<tr><td>P002</td><td>B then A</td><td></td><td>P022</td><td>B then A</td><td></td><td>P042</td><td>B then A</td><td></td></tr>
+<tr><td>P003</td><td>A then B</td><td></td><td>P023</td><td>A then B</td><td></td><td>P043</td><td>A then B</td><td></td></tr>
+<tr><td>P004</td><td>B then A</td><td></td><td>P024</td><td>B then A</td><td></td><td>P044</td><td>B then A</td><td></td></tr>
+<tr><td>P005</td><td>A then B</td><td></td><td>P025</td><td>A then B</td><td></td><td>P045</td><td>A then B</td><td></td></tr>
+<tr><td>P006</td><td>B then A</td><td></td><td>P026</td><td>B then A</td><td></td><td>P046</td><td>B then A</td><td></td></tr>
+<tr><td>P007</td><td>A then B</td><td></td><td>P027</td><td>A then B</td><td></td><td>P047</td><td>A then B</td><td></td></tr>
+<tr><td>P008</td><td>B then A</td><td></td><td>P028</td><td>B then A</td><td></td><td>P048</td><td>B then A</td><td></td></tr>
+<tr><td>P009</td><td>A then B</td><td></td><td>P029</td><td>A then B</td><td></td><td>P049</td><td>A then B</td><td></td></tr>
+<tr><td>P010</td><td>B then A</td><td></td><td>P030</td><td>B then A</td><td></td><td>P050</td><td>B then A</td><td></td></tr>
+<tr><td>P011</td><td>A then B</td><td></td><td>P031</td><td>A then B</td><td></td><td>P051</td><td>A then B</td><td></td></tr>
+<tr><td>P012</td><td>B then A</td><td></td><td>P032</td><td>B then A</td><td></td><td>P052</td><td>B then A</td><td></td></tr>
+<tr><td>P013</td><td>A then B</td><td></td><td>P033</td><td>A then B</td><td></td><td>P053</td><td>A then B</td><td></td></tr>
+<tr><td>P014</td><td>B then A</td><td></td><td>P034</td><td>B then A</td><td></td><td>P054</td><td>B then A</td><td></td></tr>
+<tr><td>P015</td><td>A then B</td><td></td><td>P035</td><td>A then B</td><td></td><td>P055</td><td>A then B</td><td></td></tr>
+<tr><td>P016</td><td>B then A</td><td></td><td>P036</td><td>B then A</td><td></td><td>P056</td><td>B then A</td><td></td></tr>
+<tr><td>P017</td><td>A then B</td><td></td><td>P037</td><td>A then B</td><td></td><td>P057</td><td>A then B</td><td></td></tr>
+<tr><td>P018</td><td>B then A</td><td></td><td>P038</td><td>B then A</td><td></td><td>P058</td><td>B then A</td><td></td></tr>
+<tr><td>P019</td><td>A then B</td><td></td><td>P039</td><td>A then B</td><td></td><td>P059</td><td>A then B</td><td></td></tr>
+<tr><td>P020</td><td>B then A</td><td></td><td>P040</td><td>B then A</td><td></td><td>P060</td><td>B then A</td><td></td></tr>
+</table>
+</section>
+
+<!-- ============ APPENDIX: recording sheet ============ -->
+<section class="page">
+<h2><span class="n">B</span>Recording sheet</h2>
+<p class="small">One line per feed. Write codes only, never names. Session date: ____________ Device: ____________ Researchers (initials): ____________ Max time: ____ min · Post limit: ____</p>
+<table class="sheet">
+<tr><th style="width:9%">Code</th><th style="width:7%">Order</th><th style="width:7%">Feed (1/2)</th><th style="width:6%">Mode</th><th style="width:9%">Time (m:ss)</th><th style="width:7%">Posts</th><th style="width:11%">Ended (choice / max)</th><th style="width:9%">Stop point reached (B)</th><th style="width:8%">Continued (B)</th><th>Notes (interruptions, questions)</th></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+</table>
+<p class="small">The app records all of this automatically. The paper sheet is a backup and a place for notes.</p>
+</section>
+
+<!-- ============ APPENDIX: results tables ============ -->
+<section class="page">
+<h2><span class="n">C</span>Results summary tables (blank)</h2>
+<p class="small">Fill in from your spreadsheet. n = number of feeds or participants included.</p>
+<table class="sheet tight">
+<tr><th style="width:42%">Measure</th><th>Mode A</th><th>Mode B</th><th>Difference (B − A)</th></tr>
+<tr><td>Number of feeds (n)</td><td></td><td></td><td></td></tr>
+<tr><td>Average browsing time (m:ss)</td><td></td><td></td><td></td></tr>
+<tr><td>Median browsing time (m:ss)</td><td></td><td></td><td></td></tr>
+<tr><td>Average posts viewed</td><td></td><td></td><td></td></tr>
+<tr><td>% stopped by choice</td><td></td><td></td><td></td></tr>
+<tr><td>% reached the maximum time</td><td></td><td></td><td></td></tr>
+<tr><td>% reached the stopping point</td><td>–</td><td></td><td>–</td></tr>
+<tr><td>% chose to continue</td><td>–</td><td></td><td>–</td></tr>
+<tr><td>Average time-guess error (m:ss)</td><td></td><td></td><td></td></tr>
+<tr><td>Awareness of time (1–5)</td><td></td><td></td><td></td></tr>
+<tr><td>Feeling of control (1–5)</td><td></td><td></td><td></td></tr>
+<tr><td>Ease of stopping (1–5)</td><td></td><td></td><td></td></tr>
+<tr><td>Overall experience (1–5)</td><td></td><td></td><td></td></tr>
+</table>
+<table class="sheet tight">
+<tr><th style="width:42%">Paired comparison (participants who did both feeds)</th><th>Value</th></tr>
+<tr><td>Participants with both feeds (n)</td><td></td></tr>
+<tr><td>Of those: A→B / B→A</td><td></td></tr>
+<tr><td>Browsed less in Mode B (number of people)</td><td></td></tr>
+<tr><td>Average difference in browsing time, B − A (m:ss)</td><td></td></tr>
+<tr><td>Average difference in posts viewed, B − A</td><td></td></tr>
+<tr><td>Average time in the 1st feed / 2nd feed (order check)</td><td></td></tr>
+<tr><td>Average willingness to use the ScrollWise feed again (1–5)</td><td></td></tr>
+</table>
+<table class="sheet tight">
+<tr><th style="width:42%">Notes for the report</th><th>What we found / what limits it</th></tr>
+<tr><td class="tall">Main finding</td><td></td></tr>
+<tr><td class="tall">Limitations</td><td></td></tr>
+<tr><td class="tall">What we would change next time</td><td></td></tr>
+</table>
+</section>
+
+<!-- ============ APPENDIX: checklists ============ -->
+<section>
+<h2><span class="n">D</span>Checklists</h2>
+<div class="two">
+<div>
+<h3>Before the study</h3>
+<p><span class="tick"></span>School approval received</p>
+<p><span class="tick"></span>Parental consent arranged where required</p>
+<p><span class="tick"></span>Invitation approved by a teacher</p>
+<p><span class="tick"></span>Practice run done and its record deleted</p>
+<p><span class="tick"></span>Order list printed (if more than one device)</p>
+<h3>Before each session</h3>
+<p><span class="tick"></span>Device charged, Do Not Disturb on, same brightness</p>
+<p><span class="tick"></span>Research mode settings: 5 min · 8 posts · order</p>
+<p><span class="tick"></span>Quiet space and an adult nearby</p>
+<p><span class="tick"></span>Recording sheet and script ready</p>
+</div>
+<div>
+<h3>For each participant</h3>
+<p><span class="tick"></span>Script read, questions answered</p>
+<p><span class="tick"></span>They know they can stop at any time</p>
+<p><span class="tick"></span>Code and order written on the sheet</p>
+<p><span class="tick"></span>No hints during browsing</p>
+<p><span class="tick"></span>Device taken back after the thank-you screen</p>
+<h3>After each session</h3>
+<p><span class="tick"></span>CSV exported and opened to check</p>
+<p><span class="tick"></span>Saved in a school account</p>
+<p><span class="tick"></span>Results deleted from the device</p>
+<p><span class="tick"></span>Paper notes stored safely, codes only</p>
+</div>
+</div>
+</section>
+
+</body>
+</html>

@@ -1,0 +1,27 @@
+{
+  "name": "scrollwise",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ScrollWise: a social feed with a finish line. Less scroll. More life.",
+  "homepage": "https://taliakasissieh.github.io/scrollwise/",
+  "author": "Talia Kassissieh",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "build:final": "node build.mjs --final",
+    "dev": "node build.mjs --watch"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  },
+  "optionalDependencies": {
+    "sharp": "^0.35.4"
+  },
+  "engines": {
+    "node": ">=20.9.0"
+  }
+}
