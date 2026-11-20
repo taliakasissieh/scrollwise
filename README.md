@@ -207,3 +207,4 @@ See **[CREDITS.md](CREDITS.md)**: licensed photo credits (CC0, CC BY 2.0, public
 **[`TEAM-GUIDE.md`](TEAM-GUIDE.md)** is the short guide for the student team: how to change text, posts and activities, add pictures, run research mode, test changes and publish updates. Before a release, go through **[`RELEASE-CHECKLIST.md`](RELEASE-CHECKLIST.md)**. What changed in each version is in **[`CHANGELOG.md`](CHANGELOG.md)**.
 
 Project by Talia Kassissieh and the ScrollWise student team. AI tools helped with parts of the code and with some sample images; the team chose the idea, the features and the content, and reviewed the results.
+ScrollWise — Public Beta
