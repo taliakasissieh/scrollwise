@@ -41,7 +41,14 @@ Use the 5-minute checklist in `TESTING.md` on each:
 - [ ] Link preview checked by sending the address in a chat app (after setting `homepage`).
 - [ ] Test data cleared on the presentation device (Settings → Reset data; Research mode → Delete all results).
 
-## 6. Research (before testing anyone)
+## 6. Visit counts (analytics)
+- [ ] GoatCounter account created by an adult; site code set in `package.json` → `analytics.goatcounter`; site rebuilt and published.
+- [ ] One test visit from a phone shows up in the GoatCounter dashboard.
+- [ ] Counting switched off on every team device.
+- [ ] The printed QR code checked: does it contain `?utm_campaign=`? If not, only “Direct” visits can be reported for it; new prints use the campaign link.
+- [ ] Privacy notice reviewed by a teacher (it explains visit counts once the code is set).
+
+## 7. Research (before testing anyone)
 - [ ] School approval and any required parental consent.
 - [ ] Research guide read by everyone running sessions.
 - [ ] Order list and recording sheets printed (`research/ScrollWise-Results-Template.pdf`).

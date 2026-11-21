@@ -1,4 +1,5 @@
 // About ScrollWise and the privacy notice. Plain text pages: edit the wording here.
+import { analyticsConfigured } from '../lib/analytics.js';
 import { Mark } from '../components/ui.jsx';
 import { Icon } from '../components/Icon.jsx';
 
@@ -163,6 +164,7 @@ export function About({ onBack, onPrivacy, onCredits, onStart }) {
 }
 
 export function Privacy({ onBack, onReset }) {
+  const counted = analyticsConfigured();
   return (
     <div className="page doc">
       <PageHead eyebrow="Privacy" title="Privacy notice" onBack={onBack} />
@@ -181,17 +183,28 @@ export function Privacy({ onBack, onReset }) {
       <Block icon="shield" title="What it never does" id="pv-never">
         <ul className="doc-list">
           <li>No sign-up, passwords, names or email addresses.</li>
-          <li>No analytics, advertising or tracking cookies.</li>
-          <li>Nothing you do is sent to a server or shown to other people.</li>
+          <li>No advertising, no cookies and no tracking across websites.</li>
+          <li>Your likes, comments, saved posts, stats and research answers are never sent anywhere or shown to other people.</li>
         </ul>
       </Block>
 
+      {counted ? (
+        <Block icon="chart" title="Anonymous visit counts" id="pv-count">
+          <p>To find out how many people visit ScrollWise, the website counts visits with GoatCounter, a privacy-friendly analytics service. It uses no cookies, stores nothing on your device, and doesn’t store your IP address or anything that identifies you.</p>
+          <p>For each visit it records: the page, the date, the website or poster link you came from, your browser, operating system, screen size and country. It also counts a few actions anonymously: opening the feed, reaching a stopping point and which choice you made, seeing activity suggestions, and starting or finishing an offline activity.</p>
+          <p>It never records what you see or write in the feed, your saved data, Demo Mode or anything in research mode. The student team sees only totals.</p>
+          <p>
+            <b>Turning it off:</b> Settings → About and privacy → Anonymous visit counts. Browsers that send “Do Not Track” or “Global Privacy Control” are never counted.
+          </p>
+        </Block>
+      ) : null}
+
       <Block icon="globe" title="Outside services" id="pv-third">
-        <p>The website’s fonts load from Google Fonts, so your browser contacts Google to download them, as with most websites. Photo credit links open the photographers’ pages on other websites. Nothing else is loaded from outside.</p>
+        <p>The website’s fonts load from Google Fonts, so your browser contacts Google to download them, as with most websites.{counted ? ' Visit counts are sent to GoatCounter (goatcounter.com).' : ''} Photo credit links open the photographers’ pages on other websites. Nothing else is loaded from outside.</p>
       </Block>
 
       <Block icon="flask" title="Research mode" id="pv-research">
-        <p>Research mode is for supervised tests by the student team. Participants are identified only by a code like P001. It records time, posts viewed, stopping choices and three optional answers, stored on this device until the team exports them. Taking part is voluntary, and participants can stop at any time.</p>
+        <p>Research mode is for supervised tests by the student team. Participants are identified only by a code like P001. It records time, posts viewed, stopping choices and a few optional answers, stored on this device until the team exports them. Research mode is never included in the visit counts. Taking part is voluntary, and participants can stop at any time.</p>
       </Block>
 
       <Block icon="trash" title="Deleting your data" id="pv-delete">

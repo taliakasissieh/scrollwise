@@ -16,6 +16,7 @@ import { Saved } from './views/Saved.jsx';
 import { Settings } from './views/Settings.jsx';
 import { Landing } from './views/Landing.jsx';
 import { DemoCoach, demoStep } from './views/DemoCoach.jsx';
+import { startAnalytics, track, trackAction, trackView } from './lib/analytics.js';
 import { About, Privacy } from './views/About.jsx';
 import { Research } from './views/Research.jsx';
 import { cx } from './lib/util.js';
@@ -120,7 +121,14 @@ function Rail({ activeNav, go, session, openTimer, onBrand, demoOn }) {
 }
 
 export default function App() {
-  const [real, dispatchReal] = useReducer(reducer, undefined, loadState);
+  const [real, dispatchRealRaw] = useReducer(reducer, undefined, loadState);
+  // Anonymous event counts (see lib/analytics.js). Only real use is counted: Demo Mode has its own dispatch.
+  const realRef = useRef(real);
+  realRef.current = real;
+  const dispatchReal = useCallback((a) => {
+    trackAction(a, realRef.current);
+    dispatchRealRaw(a);
+  }, []);
   const [demo, dispatchDemo] = useReducer(reducer, undefined, () => freshState(true));
   const [demoOn, setDemoOn] = useState(false);
   const state = demoOn ? demo : real;
@@ -158,6 +166,13 @@ export default function App() {
     });
   }, []);
   const routeKey = route.name + (route.id || '');
+  // Visit counts start once; research mode is never counted, not even as a page view.
+  useEffect(() => {
+    startAnalytics({ countPage: routeRef.current.name !== 'research' });
+  }, []);
+  useEffect(() => {
+    if (!demoOn && route.name !== 'research') trackView(route.name);
+  }, [route.name, demoOn]);
   useLayoutEffect(() => {
     window.scrollTo(0, route.name === 'feed' ? scrolls.current.feed || 0 : 0);
     if (route.anchor) {
@@ -310,6 +325,7 @@ export default function App() {
   const removeMemoryPhoto = (mid) => setPhotos(removePhoto(demoOn, mid));
 
   const startDemo = () => {
+    track('demo-started');
     dispatchDemo({ type: 'REPLACE', state: { ...freshState(true), onboarded: true } });
     setPhotosDemo(clearPhotos(true));
     setDemoOn(true);

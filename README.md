@@ -76,6 +76,13 @@ ScrollWise is an independent student project and is not made, approved or endors
 - Anonymous codes, neutral questions, duplicate protection, an overview with descriptive comparisons and CSV export (download, share or copy).
 - Separate from normal use and from the dashboard. Reached from Settings → About and privacy → Research mode.
 
+### Anonymous visit counts
+- Optional, privacy-friendly analytics with **GoatCounter**: no cookies, no personal data, nothing stored on the visitor’s device.
+- Counts visits, where they came from (including poster campaign links such as `?utm_campaign=poster-qr`), and a few anonymous actions: reaching a stopping point, the choice made there, and starting or finishing an offline activity.
+- Never counts research mode or Demo Mode. Visitors can switch it off in Settings; Do Not Track and Global Privacy Control are respected.
+- A private **team visit report** (`/team-report/`) turns a GoatCounter export into charts for the competition video, in the browser only.
+- Off until the team sets its GoatCounter code. See **[`ANALYTICS.md`](ANALYTICS.md)**.
+
 ### Also included
 - A concise welcome page, About page and plain-language Privacy notice.
 - Two-minute Demo Mode with throwaway sample data.
@@ -86,6 +93,7 @@ ScrollWise is an independent student project and is not made, approved or endors
 - **HTML, CSS and JavaScript**, with **React 19** for the interface, bundled by **esbuild** into a static website.
 - Plain CSS (no framework), with colour and spacing tokens at the top of `src/styles.css`.
 - **localStorage** for everything saved. No accounts, server, database, API keys or paid services.
+- **GoatCounter** (free for non-commercial use) for optional, cookieless visit counts.
 - **IntersectionObserver** to count a post as viewed once half of it is on screen.
 - **sharp** (optional, build only) to resize and compress pictures.
 - Fonts: Bricolage Grotesque, Figtree and Caveat from Google Fonts, with a local copy of Bricolage Grotesque and system fonts as fallbacks.
@@ -97,6 +105,7 @@ ScrollWise is an independent student project and is not made, approved or endors
 ScrollWise/
 ├── docs/                  ← the finished website (GitHub Pages publishes this folder)
 │   ├── index.html
+│   ├── team-report/       private visit report (reads a GoatCounter export in the browser)
 │   ├── assets/            app.js, app.css, fonts/
 │   ├── photos/            compressed feed pictures
 │   └── favicon, app icons, site.webmanifest, social-card.png
@@ -106,16 +115,16 @@ ScrollWise/
 │   ├── styles.css         all styles
 │   ├── views/             one file per screen
 │   ├── data/              posts.js (feed), activities.js (51 activities)
-│   ├── lib/               recommendations, research data, drawings
+│   ├── lib/               recommendations, research data, visit counts (analytics.js), drawings
 │   └── fonts/             local fallback font + licence
 ├── photos/                original pictures, credits.json, manifest.csv, PROMPTS-NEEDED.md
 │   └── ai/                AI-generated pictures (temporary/ holds drafts)
-├── public/                favicon, icons, social card (copied into docs/)
+├── public/                favicon, icons, social card, team-report/ (copied into docs/)
 ├── research/              research guide PDF, blank results template, sample CSV
 ├── build.mjs              the build script
 ├── package.json
 ├── README.md · PUBLISHING.md · TEAM-GUIDE.md · TESTING.md · RELEASE-CHECKLIST.md
-└── CHANGELOG.md · CREDITS.md · PHOTOS.md · PHOTO-MANIFEST.md
+└── ANALYTICS.md · CHANGELOG.md · CREDITS.md · PHOTOS.md · PHOTO-MANIFEST.md
 ```
 
 Where to change things:
@@ -134,6 +143,8 @@ Where to change things:
 | Find Your Next Moment | `src/views/Discover.jsx` |
 | Dashboard, Saved, Settings | `src/views/Dashboard.jsx`, `Saved.jsx`, `Settings.jsx` |
 | Research mode screens / data and CSV | `src/views/Research.jsx` / `src/lib/research.js` |
+| Visit counts: what is sent, opt-in or opt-out | `src/lib/analytics.js` (GoatCounter code: `analytics` in `package.json`) |
+| Team visit report | `public/team-report/index.html` |
 
 ## Running it on your computer
 
@@ -184,10 +195,11 @@ The overview shows descriptive results only. A small study gives early signals, 
 ## Privacy
 
 - No sign-up, passwords, names or email addresses.
-- No analytics, advertising or tracking.
+- No advertising, no cookies and no tracking across websites.
 - Settings, likes, saved posts, stats, goals and photos you add are stored only in your browser (localStorage). Settings → Reset deletes them.
+- Once the team sets a GoatCounter code, visits and a few anonymous actions are counted without cookies or personal data (see `ANALYTICS.md`). Visitors can switch this off in Settings, and Do Not Track / Global Privacy Control are respected. Research mode and Demo Mode are never counted.
 - Research results are stored separately in the same browser until the team exports and deletes them. They never change anyone’s normal stats.
-- The only outside requests are Google Fonts, and photo credit links if you open them.
+- The only outside requests are Google Fonts, GoatCounter (only when visit counts are on), and photo credit links if you open them.
 
 ## Credits and licences
 
@@ -200,6 +212,8 @@ See **[CREDITS.md](CREDITS.md)**: licensed photo credits (CC0, CC BY 2.0, public
 - **Data stays in one browser** on one device. Private windows forget it, and Safari may delete a site’s data if it isn’t opened for about a week.
 - **Research mode isn’t proof.** It gives descriptive results from small groups. Mode A repeats posts once the available ones run out.
 - **Real-device testing is still needed.** Automated tests ran in Chrome only. See [`TESTING.md`](TESTING.md).
+- **The printed poster’s QR code** (plain address, no campaign link) can’t be told apart from other direct visits. New prints should use `?utm_campaign=poster-qr` (see `ANALYTICS.md`).
+- **Visit counts** miss visitors who switch them off, use Do Not Track or block the counter, and count visits, not individual people.
 - **Fonts need the internet** for the full look. Offline, a local copy of the heading font and the device’s own fonts are used.
 
 ## Maintenance

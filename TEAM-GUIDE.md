@@ -47,6 +47,13 @@ Then reset your test data: Settings → Reset data.
 
 Tip: **Demo Mode** (Settings) gives a two-minute guided tour with throwaway data, so your real stats stay clean.
 
+## Visit counts
+- Turn counting **off on every team device** (Settings → About and privacy → Anonymous visit counts), so tests don’t count as visitors.
+- Live numbers: the GoatCounter dashboard (the adult who made the account has the login).
+- Charts for the video: export from GoatCounter, then open `…/scrollwise/team-report/`.
+- New posters, videos or posts link to `…/scrollwise/?utm_campaign=NAME` so their visits can be counted separately.
+- Everything is explained in `ANALYTICS.md`.
+
 ## Research
 Read `research/ScrollWise-Research-Guide.pdf` before testing anyone. School approval first; voluntary, supervised and anonymous; export the CSV after every session and delete the results from the device.
 
@@ -57,6 +64,7 @@ Read `research/ScrollWise-Research-Guide.pdf` before testing anyone. School appr
 | Photos | `PHOTO-MANIFEST.md`, new pictures, credits |
 | Testing | The checklists above and in `TESTING.md` |
 | Research | Recruitment, sessions, data export, results |
+| Numbers | Visit counts, campaign links, charts for the video |
 | Publishing | Builds, GitHub, the release checklist |
 
 ## Getting help

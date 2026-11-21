@@ -8,10 +8,10 @@
 //   photos/ai/*.jpg   AI-generated pictures named after their slot, e.g. post-mirror-fit.jpg
 // Every picture is resized and compressed automatically when "sharp" is installed (npm install).
 //
-// Files in public/ (icons, social card, manifest) are copied into docs/ unchanged.
+// Files in public/ (icons, social card, manifest, the team visit report) are copied into docs/ unchanged.
 // Anything else you put in docs/ yourself (for example a CNAME file) is left alone.
 import * as esbuild from 'esbuild';
-import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { inflateRawSync } from 'node:zlib';
 
@@ -21,6 +21,11 @@ const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
 // Your GitHub Pages address, e.g. https://your-name.github.io/scrollwise/ (set "homepage" in package.json).
 // Only used for link previews: WhatsApp, Instagram, iMessage etc. need the full address of the preview image.
 const HOMEPAGE = (pkg.homepage || '').trim().replace(/\/?$/, '/').replace(/^\/$/, '');
+// Anonymous visit counts (see ANALYTICS.md): your GoatCounter site code, e.g. "scrollwise" for
+// https://scrollwise.goatcounter.com. Leave it empty to turn counting off. Only the website (docs/) counts
+// visits; the offline copy never does.
+const GOATCOUNTER = ((pkg.analytics && pkg.analytics.goatcounter) || '').trim().toLowerCase();
+if (GOATCOUNTER && !/^[a-z0-9-]{2,50}$/.test(GOATCOUNTER)) throw new Error(`analytics.goatcounter in package.json should be just the site code (letters, numbers, dashes), not "${GOATCOUNTER}"`);
 const FONTS =
   'https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=Caveat:wght@500;600;700&family=Figtree:wght@400;500;600;700;800&display=swap';
 
@@ -60,6 +65,7 @@ function headTags({ site }) {
     '<meta name="theme-color" content="#f3f5fb" media="(prefers-color-scheme: light)">',
     '<meta name="theme-color" content="#060a1a" media="(prefers-color-scheme: dark)">',
     '<meta name="apple-mobile-web-app-title" content="ScrollWise">',
+    ...(site && GOATCOUNTER ? [`<meta name="scrollwise-analytics" content="goatcounter:${GOATCOUNTER}">`] : []),
     ...icon,
     ...social,
     '<link rel="preconnect" href="https://fonts.googleapis.com">',
@@ -522,7 +528,7 @@ async function write(result) {
   for (const f of fonts) writeFileSync(`docs/assets/fonts/${fontName(f)}`, f.contents);
   if (existsSync('src/fonts/OFL.txt')) copyFileSync('src/fonts/OFL.txt', 'docs/assets/fonts/OFL.txt');
   for (const p of web) writeFileSync(`docs/photos/${p.id}.${p.ext}`, p.buf);
-  for (const f of readdirSync('public')) copyFileSync(`public/${f}`, `docs/${f}`);
+  cpSync('public', 'docs', { recursive: true }); // icons, social card, manifest, team-report/
   const index = [
     '<!doctype html>',
     '<html lang="en">',
@@ -567,6 +573,7 @@ async function write(result) {
   console.log(`Built docs/ (website: ${mb(Buffer.byteLength(js) + Buffer.byteLength(css))} of code + ${mb(webBytes)} of pictures) and dist/scrollwise.html (offline copy, ${mb(Buffer.byteLength(page))})`);
   console.log(`  ${photos.length} pictures${ai ? `, ${ai} of them AI-generated` : ''}${tmp ? `, ${tmp} temporary drafts` : ''}${finalOnly ? ' (final build: temporary drafts left out)' : ''}`);
   if (!HOMEPAGE) console.log('  Tip: set "homepage" in package.json to your GitHub Pages address so link previews show the social card.');
+  console.log(GOATCOUNTER ? `  Anonymous visit counts: on (https://${GOATCOUNTER}.goatcounter.com)` : '  Anonymous visit counts: off (set analytics.goatcounter in package.json, see ANALYTICS.md)');
   feedReport(photos);
   writeManifest(photos);
 }

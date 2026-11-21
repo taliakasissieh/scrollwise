@@ -1,5 +1,12 @@
 # Changelog
 
+## Anonymous visit counts (21 November 2026)
+- Optional, privacy-friendly analytics with GoatCounter: no cookies, no personal data, nothing stored on the device. Off until a site code is set in `package.json`.
+- Counts one page view per visit (with campaign links such as `?utm_campaign=poster-qr`) and anonymous events: opening the feed, reaching a stopping point, each stopping-point choice, seeing activity suggestions, starting and completing an activity, and Demo Mode.
+- Never counts research mode (not even a page view) or anything in Demo Mode. Respects Do Not Track and Global Privacy Control; visitors can switch it off in Settings. Campaign parameters are removed from the address after counting.
+- New private team visit report (`/team-report/`): reads a GoatCounter CSV or JSON export in the browser only (connections blocked), with visits per day, campaigns, sources, devices, countries, stopping-point choices and activities, date ranges, tables, PNG chart export and a summary CSV. Shows nothing until a real export is loaded.
+- Privacy notice, Settings, README, team guide and release checklist updated; new `ANALYTICS.md`.
+
 ## Final release candidate (20 November 2026)
 
 ### Healthy scrolling

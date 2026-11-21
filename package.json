@@ -4,6 +4,9 @@
   "private": true,
   "description": "ScrollWise: a social feed with a finish line. Less scroll. More life.",
   "homepage": "https://taliakasissieh.github.io/scrollwise/",
+  "analytics": {
+    "goatcounter": ""
+  },
   "author": "Talia Kassissieh",
   "type": "module",
   "scripts": {

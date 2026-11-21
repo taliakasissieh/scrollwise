@@ -43,6 +43,10 @@ If a font can’t load, the device’s own system font is used instead.
 - [esbuild](https://esbuild.github.io): MIT License
 - [sharp](https://sharp.pixelplumbing.com) (build only, optional): Apache License 2.0
 
+## Services
+
+- [GoatCounter](https://www.goatcounter.com) (optional visit counts), free for non-commercial use. Its counting script is loaded from GoatCounter’s own server only when a site code is set; it is open-source software.
+
 ## Logo and icons
 
 The ScrollWise logo, favicon, app icons and interface icons were made for this project.

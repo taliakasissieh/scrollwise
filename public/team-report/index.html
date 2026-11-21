@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<!-- Nothing on this page can be sent anywhere: the browser blocks every connection (connect-src 'none'). -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'none'; form-action 'none'">
+<title>ScrollWise · Team visit report</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<style>
+/* ScrollWise team visit report.
+   Reads a GoatCounter export file (CSV, CSV.gz or JSON ZIP) in this browser and turns it into charts.
+   The file never leaves the device, and the page shows no numbers until a real export is loaded. */
+@font-face { font-family: 'Bricolage Local'; src: url('../assets/fonts/bricolage-grotesque-bold.woff') format('woff'); font-weight: 700; font-display: swap; }
+:root {
+  color-scheme: light;
+  --bg: #f3f5fb; --surface: #ffffff; --surface-2: #eceff8; --line: #dde2f0; --grid: #e7eaf3;
+  --ink: #0b1433; --ink-2: #465074; --ink-3: #5f6889;
+  --blue: #2b59ff; --blue-soft: #e8edff; --muted-bar: #b9c1d8;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a;
+  --focus: #2b59ff;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #060a1a; --surface: #0d1430; --surface-2: #151e42; --line: #243063; --grid: #1c2650;
+    --ink: #eef1fb; --ink-2: #b0b8d4; --ink-3: #8f98bb;
+    --blue: #5b7cff; --blue-soft: #1a2558; --muted-bar: #48527d;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70;
+  }
+}
+* { box-sizing: border-box; min-width: 0; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 24px max(16px, 4vw) 64px; }
+header.top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 650; font-size: 18px; color: var(--ink); text-decoration: none; }
+.brand b { color: var(--blue); }
+h1 { font: 700 clamp(28px, 4.4vw, 40px)/1.08 'Bricolage Local', system-ui, sans-serif; margin: 0 0 6px; letter-spacing: -0.01em; text-wrap: balance; }
+h2 { font: 650 18px/1.3 system-ui, sans-serif; margin: 0; }
+p { margin: 0 0 8px; }
+.lead { color: var(--ink-2); max-width: 70ch; }
+.small { font-size: 13.5px; color: var(--ink-3); }
+.card { background: var(--surface); border-radius: 18px; padding: 18px 20px; box-shadow: 0 1px 2px rgba(11,20,51,.05), 0 6px 24px rgba(11,20,51,.05); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); font: 600 15px system-ui, sans-serif; cursor: pointer; text-decoration: none; }
+.btn-primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+.btn-sm { min-height: 36px; padding: 0 14px; font-size: 14px; }
+.btn:focus-visible, select:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+/* empty state */
+.drop { display: grid; gap: 14px; justify-items: start; padding: 28px; border: 2px dashed var(--line); border-radius: 20px; background: var(--surface); }
+.drop.is-over { border-color: var(--blue); background: var(--blue-soft); }
+.drop ol { margin: 0; padding-left: 20px; color: var(--ink-2); }
+.drop li { margin-bottom: 4px; }
+.error { color: #c0322f; font-weight: 600; }
+@media (prefers-color-scheme: dark) { .error { color: #ff8a8a; } }
+/* filters */
+.filters { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 6px 0 16px; }
+.seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--surface-2); }
+.seg button { min-height: 38px; padding: 0 14px; border: 0; border-radius: 999px; background: transparent; color: var(--ink-2); font: 600 14px system-ui, sans-serif; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(11,20,51,.12); }
+.dates { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); font-size: 14px; }
+.dates input { min-height: 38px; padding: 4px 8px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink); font: 15px system-ui, sans-serif; }
+/* tiles */
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+.tile .l { font-size: 13.5px; color: var(--ink-2); margin-bottom: 4px; }
+.tile .v { font-size: 30px; font-weight: 650; line-height: 1.1; }
+.tile.hero .v { font-size: 48px; }
+.tile .d { font-size: 12.5px; color: var(--ink-3); margin-top: 6px; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 12px; }
+.full { margin-bottom: 12px; }
+.chart-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+.chart-sub { font-size: 13.5px; color: var(--ink-3); margin: 2px 0 10px; }
+.fig { position: relative; width: 100%; }
+.fig svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.tip { position: fixed; z-index: 10; pointer-events: none; padding: 8px 10px; border-radius: 10px; background: var(--ink); color: var(--bg); font-size: 13px; line-height: 1.35; box-shadow: 0 6px 20px rgba(0,0,0,.2); opacity: 0; transition: opacity .1s; }
+.tip b { display: block; font-size: 15px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 10px; font-size: 13.5px; color: var(--ink-2); }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+details.tbl { margin-top: 10px; }
+details.tbl summary { cursor: pointer; font-size: 13.5px; color: var(--ink-2); min-height: 28px; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 6px; }
+th, td { text-align: left; padding: 6px 4px; border-bottom: 1px solid var(--line); }
+td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+.note { margin-top: 10px; padding: 12px 14px; border-radius: 12px; background: var(--blue-soft); font-size: 14px; color: var(--ink); }
+.honest { margin-top: 18px; }
+.honest ul { margin: 6px 0 0; padding-left: 20px; color: var(--ink-2); }
+.bar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+@media (max-width: 860px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } .grid2 { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 420px) { .tile.hero .v { font-size: 40px; } }
+@media print { body { background: #fff; } .filters, .bar-actions, .save, details.tbl summary, #again { display: none !important; } .card { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; } }
+@media (prefers-reduced-motion: reduce) { .tip { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="../"><svg viewBox="0 0 40 40" width="30" height="30" aria-hidden="true"><rect width="40" height="40" rx="12" fill="#0B1433"/><path d="M11.5 29.5c5 2.2 15.5 1.6 15.5-4.4 0-6.4-14-3.4-14-9.6 0-4.4 5.2-5.6 9.4-4.6" fill="none" stroke="#5B7CFF" stroke-width="3.6" stroke-linecap="round"/><circle cx="28.6" cy="11.4" r="3.5" fill="#3EE3A6"/></svg><span>scroll<b>wise</b></span></a>
+    <div class="bar-actions" id="actions" hidden>
+      <button type="button" class="btn btn-sm" id="dl-summary">Download summary (CSV)</button>
+      <button type="button" class="btn btn-sm" onclick="window.print()">Print or save as PDF</button>
+      <button type="button" class="btn btn-sm" id="again">Load another file</button>
+    </div>
+  </header>
+
+  <h1 id="title">Team visit report</h1>
+  <p class="lead" id="lead">Real visitor numbers for ScrollWise, from your GoatCounter export. The file is read only in this browser: nothing is uploaded, and this page can’t connect to the internet.</p>
+
+  <!-- empty state: shown until a real export is loaded -->
+  <section id="empty" class="drop" aria-labelledby="empty-h">
+    <h2 id="empty-h">Load your GoatCounter export</h2>
+    <ol>
+      <li>Sign in to your GoatCounter dashboard and open <b>Settings → Export</b>.</li>
+      <li>Start an export and download the file when it’s ready (JSON ZIP, or CSV if “Individual pageviews” is switched on).</li>
+      <li>Choose the file below, or drop it here.</li>
+    </ol>
+    <label class="btn btn-primary" for="file">Choose export file</label>
+    <input id="file" type="file" accept=".zip,.csv,.gz,application/zip,text/csv" hidden>
+    <p class="small">No sample numbers are ever shown here: until you load a real export, there is nothing to report.</p>
+    <p class="error" id="err" role="alert" hidden></p>
+  </section>
+
+  <main id="report" hidden>
+    <div class="filters" role="group" aria-label="Date range">
+      <div class="seg" id="presets">
+        <button type="button" data-p="all" aria-pressed="true">All</button>
+        <button type="button" data-p="7" aria-pressed="false">Last 7 days</button>
+        <button type="button" data-p="30" aria-pressed="false">Last 30 days</button>
+      </div>
+      <span class="dates"><label for="from">From</label><input type="date" id="from"><label for="to">to</label><input type="date" id="to"></span>
+    </div>
+
+    <section class="tiles" aria-label="Totals">
+      <div class="card tile hero"><p class="l">Visits</p><p class="v" id="t-visits">–</p><p class="d" id="t-visits-d"></p></div>
+      <div class="card tile"><p class="l">Visits from campaign links</p><p class="v" id="t-camp">–</p><p class="d">e.g. a poster QR code with ?utm_campaign=…</p></div>
+      <div class="card tile"><p class="l">Reached a stopping point</p><p class="v" id="t-stop">–</p><p class="d">visitors, counted once per visit</p></div>
+      <div class="card tile"><p class="l">Completed an offline activity</p><p class="v" id="t-act">–</p><p class="d">visitors, counted once per visit</p></div>
+    </section>
+
+    <section class="card full" id="c-daily" aria-labelledby="h-daily">
+      <div class="chart-head"><h2 id="h-daily">Visits per day</h2><button type="button" class="btn btn-sm save" data-chart="daily">Save as image</button></div>
+      <p class="chart-sub" id="s-daily"></p>
+      <div class="fig" id="f-daily" style="height:280px"></div>
+      <details class="tbl"><summary>Show as a table</summary><table id="tb-daily"></table></details>
+    </section>
+
+    <div class="grid2">
+      <section class="card" id="c-source" aria-labelledby="h-source">
+        <div class="chart-head"><h2 id="h-source">Where visits came from</h2><button type="button" class="btn btn-sm save" data-chart="source">Save as image</button></div>
+        <p class="chart-sub">Campaign links in blue. “Direct” has no referrer: QR codes without a campaign link, typed addresses, bookmarks and some apps.</p>
+        <div class="fig" id="f-source"></div>
+        <details class="tbl"><summary>Show as a table</summary><table id="tb-source"></table></details>
+      </section>
+      <section class="card" id="c-device" aria-labelledby="h-device">
+        <div class="chart-head"><h2 id="h-device">Devices</h2><button type="button" class="btn btn-sm save" data-chart="device">Save as image</button></div>
+        <p class="chart-sub">By screen width: phones under 600 px, tablets 600–1023 px, computers 1024 px and wider.</p>
+        <div class="fig" id="f-device" style="height:56px"></div>
+        <div class="legend" id="lg-device"></div>
+        <details class="tbl"><summary>Show as a table</summary><table id="tb-device"></table></details>
+        <h2 style="margin-top:18px">Top countries</h2>
+        <div class="fig" id="f-country" style="margin-top:8px"></div>
+        <details class="tbl"><summary>Show as a table</summary><table id="tb-country"></table></details>
+      </section>
+    </div>
+
+    <div class="grid2">
+      <section class="card" id="c-stop" aria-labelledby="h-stop">
+        <div class="chart-head"><h2 id="h-stop">The stopping point</h2><button type="button" class="btn btn-sm save" data-chart="stop">Save as image</button></div>
+        <p class="chart-sub">Visitors who did each thing at least once during a visit.</p>
+        <div class="fig" id="f-stop"></div>
+        <p class="note" id="n-stop" hidden></p>
+        <details class="tbl"><summary>Show as a table</summary><table id="tb-stop"></table></details>
+      </section>
+      <section class="card" id="c-act" aria-labelledby="h-act">
+        <div class="chart-head"><h2 id="h-act">Offline activities</h2><button type="button" class="btn btn-sm save" data-chart="act">Save as image</button></div>
+        <p class="chart-sub">Visitors who did each thing at least once during a visit.</p>
+        <div class="fig" id="f-act"></div>
+        <p class="note" id="n-act" hidden></p>
+        <details class="tbl"><summary>Show as a table</summary><table id="tb-act"></table></details>
+      </section>
+    </div>
+
+    <section class="card honest" aria-labelledby="h-honest">
+      <h2 id="h-honest">Reporting these numbers honestly</h2>
+      <ul>
+        <li>Say where the numbers come from and the dates: “GoatCounter, cookieless, <span id="range-text">…</span>”.</li>
+        <li>“Visits” are GoatCounter’s unique visits: one person on one device counts once in a session of up to 8 hours. They are not the number of different people.</li>
+        <li>Only visits from links with <b>?utm_campaign=…</b> can be called poster or QR visits. “Direct” visits can’t be split into QR scans and other visits.</li>
+        <li>Team devices should have counting turned off (Settings → About and privacy) so tests don’t count.</li>
+        <li>Visitors who turned counting off, use Do Not Track, or block the counter aren’t included, so real numbers can be a little higher.</li>
+        <li>Check the totals against the GoatCounter dashboard before using them in the video.</li>
+      </ul>
+      <p class="small" id="src-text" style="margin-top:10px"></p>
+    </section>
+  </main>
+</div>
+<div class="tip" id="tip" role="status" aria-live="polite"></div>
+
+<script>
+{
+  /* ---------------- reading the export ---------------- */
+  const EVENTS = {
+    'view-feed': 'Opened the feed',
+    'stopping-point-reached': 'Reached a stopping point',
+    'choice-done': 'Chose “I’m done for now”',
+    'choice-moment': 'Chose “Find Your Next Moment”',
+    'choice-continue': 'Chose “Continue intentionally”',
+    'view-moments': 'Opened Find Your Next Moment',
+    'moment-suggestions-shown': 'Saw activity suggestions',
+    'activity-started': 'Started an activity',
+    'activity-completed': 'Completed an activity',
+    'view-dashboard': 'Opened the dashboard',
+    'view-about': 'Opened the About page',
+    'demo-started': 'Started Demo Mode',
+  };
+  const STOP_ORDER = ['view-feed', 'stopping-point-reached', 'choice-done', 'choice-moment', 'choice-continue'];
+  const ACT_ORDER = ['view-moments', 'moment-suggestions-shown', 'activity-started', 'activity-completed'];
+  const $ = (id) => document.getElementById(id);
+  const fmt = (n) => Math.round(n).toLocaleString('en-GB');
+  const TZ = (() => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone; } catch (e) { return 'local time'; } })();
+  const localDay = (iso) => { const d = new Date(iso); if (isNaN(d)) return null; return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+
+  function parseCSV(text) {
+    const rows = []; let row = []; let cur = ''; let q = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (q) { if (c === '"' && text[i + 1] === '"') { cur += '"'; i++; } else if (c === '"') q = false; else cur += c; }
+      else if (c === '"') q = true;
+      else if (c === ',') { row.push(cur); cur = ''; }
+      else if (c === '\n' || c === '\r') { if (c === '\r' && text[i + 1] === '\n') i++; row.push(cur); rows.push(row); row = []; cur = ''; }
+      else cur += c;
+    }
+    if (cur || row.length) { row.push(cur); rows.push(row); }
+    return rows.filter((r) => r.length > 1 || (r[0] || '').trim());
+  }
+
+  async function inflate(bytes, format) {
+    if (typeof DecompressionStream === 'undefined') throw new Error('This browser can’t open compressed files. Try a recent Chrome, Edge, Firefox or Safari.');
+    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream(format));
+    return new Uint8Array(await new Response(stream).arrayBuffer());
+  }
+
+  // Minimal ZIP reader (stored and deflated entries), enough for GoatCounter's JSON export.
+  async function readZip(buf) {
+    const dv = new DataView(buf);
+    let eocd = -1;
+    for (let i = buf.byteLength - 22; i >= Math.max(0, buf.byteLength - 65557); i--) if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+    if (eocd < 0) throw new Error('This doesn’t look like a ZIP file.');
+    const n = dv.getUint16(eocd + 10, true);
+    let p = dv.getUint32(eocd + 16, true);
+    const files = {};
+    const dec = new TextDecoder();
+    for (let k = 0; k < n; k++) {
+      if (dv.getUint32(p, true) !== 0x02014b50) throw new Error('The ZIP file looks damaged.');
+      const method = dv.getUint16(p + 10, true);
+      const csize = dv.getUint32(p + 20, true);
+      const nlen = dv.getUint16(p + 28, true), xlen = dv.getUint16(p + 30, true), clen = dv.getUint16(p + 32, true);
+      const off = dv.getUint32(p + 42, true);
+      const name = dec.decode(new Uint8Array(buf, p + 46, nlen));
+      const lnlen = dv.getUint16(off + 26, true), lxlen = dv.getUint16(off + 28, true);
+      const data = new Uint8Array(buf, off + 30 + lnlen + lxlen, csize);
+      if (!name.endsWith('/')) files[name.split('/').pop()] = method === 0 ? data : method === 8 ? await inflate(data, 'deflate-raw') : null;
+      p += 46 + nlen + xlen + clen;
+    }
+    return files;
+  }
+
+  const jsonl = (bytes) => (bytes ? new TextDecoder().decode(bytes).split(/\r?\n/).filter((l) => l.trim()).map((l) => JSON.parse(l)) : []);
+
+  function refOf(ref, scheme) {
+    const r = (ref || '').trim();
+    if (scheme === 'c') return { type: 'campaign', label: r || 'campaign' };
+    if (!r) return { type: 'direct', label: 'Direct (no referrer)' };
+    if (scheme === 'h') return { type: 'site', label: r.replace(/^https?:\/\//, '').split('/')[0] };
+    return { type: 'other', label: r };
+  }
+
+  function fromJSONZip(files) {
+    if (!files['hit_stats.jsonl'] || !files['paths.jsonl']) throw new Error('This ZIP isn’t a GoatCounter JSON export (hit_stats.jsonl is missing).');
+    let info = {};
+    try { info = files['info.json'] ? JSON.parse(new TextDecoder().decode(files['info.json'])) : {}; } catch (e) { /* optional */ }
+    const paths = new Map(jsonl(files['paths.jsonl']).map((x) => [x.id, x]));
+    const refs = new Map(jsonl(files['refs.jsonl']).map((x) => [x.id, x]));
+    const visits = [], events = [];
+    for (const h of jsonl(files['hit_stats.jsonl'])) {
+      const path = paths.get(h.path_id); if (!path) continue;
+      const day = localDay(h.hour); if (!day) continue;
+      if (path.event) events.push({ day, name: path.path, count: h.count });
+      else { const r = refs.get(h.ref_id) || {}; visits.push({ day, ref: refOf(r.ref, r.ref_scheme), count: h.count }); }
+    }
+    const pageIds = new Set([...paths.values()].filter((x) => !x.event).map((x) => x.id));
+    const sizes = jsonl(files['size_stats.jsonl']).filter((x) => pageIds.has(x.path_id)).map((x) => ({ day: x.day, width: x.width, count: x.count }));
+    const locations = jsonl(files['location_stats.jsonl']).filter((x) => pageIds.has(x.path_id)).map((x) => ({ day: x.day, country: String(x.location || '').split('-')[0], count: x.count }));
+    return { visits, events, sizes, locations, source: `GoatCounter JSON export${info.created_at ? ` created ${new Date(info.created_at).toLocaleString('en-GB')}` : ''}${info.export_version ? ` (format ${info.export_version})` : ''}` };
+  }
+
+  function fromCSV(text) {
+    const rows = parseCSV(text.replace(/^﻿/, ''));
+    if (rows.length < 1) throw new Error('The CSV file is empty.');
+    let head = rows[0].map((h) => h.trim());
+    let version = '';
+    const m = head[0].match(/^(\d+)(.*)$/);
+    if (m) { version = m[1]; head[0] = m[2] || 'Path'; }
+    const col = (name) => head.findIndex((h) => h.toLowerCase() === name.toLowerCase());
+    const need = ['Path', 'Event', 'Bot', 'Referrer', 'Referrer scheme', 'FirstVisit', 'Date'];
+    const miss = need.filter((n) => col(n) < 0);
+    if (miss.length) throw new Error(`This CSV isn’t a GoatCounter export (missing columns: ${miss.join(', ')}).`);
+    if (version && version !== '2') throw new Error(`This export uses format ${version}; this report reads format 2. Please use the JSON export instead.`);
+    const I = Object.fromEntries(['Path', 'Event', 'Bot', 'Referrer', 'Referrer scheme', 'Screen size', 'Location', 'FirstVisit', 'Date'].map((n) => [n, col(n)]));
+    const yes = (v) => /^(true|1|t)$/i.test(String(v || '').trim());
+    const visits = [], events = [], sizes = [], locations = [];
+    for (const r of rows.slice(1)) {
+      if (String(r[I.Bot] || '0').trim() !== '0') continue; // bots never count
+      if (!yes(r[I.FirstVisit])) continue; // GoatCounter's own dashboard counts only first visits
+      const day = localDay(r[I.Date]); if (!day) continue;
+      if (yes(r[I.Event])) { events.push({ day, name: r[I.Path], count: 1 }); continue; }
+      visits.push({ day, ref: refOf(r[I.Referrer], r[I['Referrer scheme']]), count: 1 });
+      if (I['Screen size'] >= 0) { const w = parseInt(String(r[I['Screen size']] || '').split(',')[0], 10); if (w > 0) sizes.push({ day, width: w, count: 1 }); }
+      if (I.Location >= 0 && r[I.Location]) locations.push({ day, country: String(r[I.Location]).split('-')[0], count: 1 });
+    }
+    return { visits, events, sizes, locations, source: `GoatCounter CSV export (format ${version || '?'})` };
+  }
+
+  async function load(file) {
+    const buf = await file.arrayBuffer();
+    let bytes = new Uint8Array(buf);
+    if (bytes[0] === 0x1f && bytes[1] === 0x8b) bytes = await inflate(bytes, 'gzip');
+    if (bytes[0] === 0x50 && bytes[1] === 0x4b) return fromJSONZip(await readZip(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)));
+    return fromCSV(new TextDecoder().decode(bytes));
+  }
+
+  /* ---------------- state ---------------- */
+  let DATA = null;
+  let range = { from: '', to: '' };
+  const inRange = (d) => (!range.from || d >= range.from) && (!range.to || d <= range.to);
+  const sum = (list) => list.reduce((n, x) => n + x.count, 0);
+
+  function dayList(from, to) {
+    const out = []; const d = new Date(`${from}T12:00:00`); const end = new Date(`${to}T12:00:00`);
+    while (d <= end && out.length < 3700) { out.push(localDay(d.toISOString())); d.setDate(d.getDate() + 1); }
+    return out;
+  }
+  const label = (day) => new Date(`${day}T12:00:00`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+
+  /* ---------------- drawing ---------------- */
+  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const tip = $('tip');
+  const showTip = (e, value, name) => { tip.textContent = ''; const b = document.createElement('b'); b.textContent = value; tip.append(b, document.createTextNode(name)); tip.style.opacity = 1; const x = Math.min(e.clientX + 14, innerWidth - tip.offsetWidth - 8); tip.style.left = `${x}px`; tip.style.top = `${Math.max(8, e.clientY - tip.offsetHeight - 12)}px`; };
+  const hideTip = () => { tip.style.opacity = 0; };
+  const NS = 'http://www.w3.org/2000/svg';
+  const el = (name, attrs = {}, text) => { const n = document.createElementNS(NS, name); for (const k in attrs) n.setAttribute(k, attrs[k]); if (text != null) n.textContent = text; return n; };
+  const roundTop = (x, y, w, h, r) => { r = Math.min(r, w / 2, h); return `M${x},${y + h}V${y + r}Q${x},${y} ${x + r},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h}Z`; };
+  const roundRight = (x, y, w, h, r) => { r = Math.min(r, h / 2, w); return `M${x},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h - r}Q${x + w},${y + h} ${x + w - r},${y + h}H${x}Z`; };
+  // Clean whole-number ticks: a step of 1, 2 or 5 × 10ⁿ, and a top that is a multiple of it.
+  const ticksFor = (v) => { const raw = Math.max(1, v) / 4; const p = 10 ** Math.floor(Math.log10(raw)); const step = Math.max(1, [1, 2, 5, 10].map((m) => m * p).find((s) => s >= raw)); const top = Math.max(step, Math.ceil(Math.max(1, v) / step) * step); const out = []; for (let t = 0; t <= top + 1e-9; t += step) out.push(t); return { top, ticks: out }; };
+
+  function columns(box, items) {
+    // items: [{label, value, name}]
+    box.textContent = '';
+    const W = box.clientWidth, H = box.clientHeight;
+    const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': `Visits per day, ${items.length} days` });
+    const left = 36, bottom = 26, top = 10, right = 6;
+    const pw = W - left - right, ph = H - top - bottom;
+    const { top: max, ticks } = ticksFor(Math.max(0, ...items.map((i) => i.value)));
+    for (const v of ticks) {
+      const y = top + ph - (v / max) * ph;
+      svg.append(el('line', { x1: left, x2: W - right, y1: y, y2: y, stroke: css('--grid'), 'stroke-width': 1 }));
+      svg.append(el('text', { x: left - 6, y: y + 4, 'text-anchor': 'end', 'font-size': 11, fill: css('--ink-3'), 'font-family': 'system-ui, sans-serif' }, fmt(v)));
+    }
+    const slot = pw / Math.max(1, items.length);
+    const bw = Math.max(1, Math.min(24, slot - 2));
+    const every = Math.ceil(items.length / Math.max(1, Math.floor(pw / 56)));
+    items.forEach((it, i) => {
+      const x = left + i * slot + (slot - bw) / 2;
+      const h = (it.value / max) * ph;
+      if (h > 0) svg.append(el('path', { d: roundTop(x, top + ph - h, bw, h, Math.min(4, bw / 2)), fill: css('--blue') }));
+      const hit = el('rect', { x: left + i * slot, y: top, width: slot, height: ph, fill: 'transparent', tabindex: 0, 'aria-label': `${it.name}: ${fmt(it.value)} visits` });
+      hit.addEventListener('pointermove', (e) => showTip(e, `${fmt(it.value)} visits`, it.name));
+      hit.addEventListener('pointerleave', hideTip);
+      hit.addEventListener('focus', () => { const r = hit.getBoundingClientRect(); showTip({ clientX: r.left + r.width / 2, clientY: r.top + 40 }, `${fmt(it.value)} visits`, it.name); });
+      hit.addEventListener('blur', hideTip);
+      svg.append(hit);
+      if (i % every === 0) svg.append(el('text', { x: left + i * slot + slot / 2, y: H - 6, 'text-anchor': 'middle', 'font-size': 11, fill: css('--ink-3'), 'font-family': 'system-ui, sans-serif' }, it.label));
+    });
+    svg.append(el('line', { x1: left, x2: W - right, y1: top + ph, y2: top + ph, stroke: css('--line'), 'stroke-width': 1 }));
+    box.append(svg);
+  }
+
+  function hbars(box, items, unit = 'visitors') {
+    // items: [{label, value, color}] in display order
+    box.textContent = '';
+    const W = box.clientWidth;
+    const stacked = W < 460; // narrow screens: the label sits above its bar instead of beside it
+    const row = stacked ? 44 : 34, H = Math.max(row, items.length * row) + 4;
+    box.style.height = `${H}px`;
+    const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': items.map((i) => `${i.label}: ${fmt(i.value)}`).join('; ') });
+    const labW = stacked ? 0 : Math.min(230, W * 0.46), valW = 54;
+    const max = Math.max(1, ...items.map((i) => i.value));
+    items.forEach((it, i) => {
+      const y = i * row + 4;
+      const by = stacked ? y + 20 : y + 6;
+      svg.append(el('text', { x: 0, y: y + (stacked ? 13 : 17), 'font-size': 13, fill: css('--ink'), 'font-family': 'system-ui, sans-serif' }, it.label.length > 34 ? `${it.label.slice(0, 33)}…` : it.label));
+      const w = ((W - labW - valW) * it.value) / max;
+      if (w > 0) svg.append(el('path', { d: roundRight(labW, by, w, stacked ? 14 : 16, 4), fill: it.color || css('--blue') }));
+      svg.append(el('text', { x: labW + w + 6, y: by + 12, 'font-size': 13, 'font-weight': 600, fill: css('--ink'), 'font-family': 'system-ui, sans-serif' }, fmt(it.value)));
+      const hit = el('rect', { x: 0, y, width: W, height: row, fill: 'transparent', tabindex: 0, 'aria-label': `${it.label}: ${fmt(it.value)} ${unit}` });
+      hit.addEventListener('pointermove', (e) => showTip(e, `${fmt(it.value)} ${unit}`, it.label));
+      hit.addEventListener('pointerleave', hideTip);
+      svg.append(hit);
+    });
+    box.append(svg);
+  }
+
+  function segbar(box, parts) {
+    box.textContent = '';
+    const W = box.clientWidth, H = 40, total = parts.reduce((n, p) => n + p.value, 0);
+    const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': parts.map((p) => `${p.label}: ${fmt(p.value)} (${total ? Math.round((p.value / total) * 100) : 0}%)`).join('; ') });
+    let x = 0;
+    parts.forEach((p) => {
+      if (!p.value || !total) return;
+      const w = (W * p.value) / total - 2;
+      svg.append(el('rect', { x, y: 6, width: Math.max(1, w), height: 28, rx: 4, fill: p.color }));
+      const share = `${Math.round((p.value / total) * 100)}%`;
+      if (w > 44) svg.append(el('text', { x: x + 8, y: 25, 'font-size': 13, 'font-weight': 650, fill: '#ffffff', 'font-family': 'system-ui, sans-serif' }, share));
+      const hit = el('rect', { x, y: 0, width: Math.max(1, w + 2), height: H, fill: 'transparent', tabindex: 0, 'aria-label': `${p.label}: ${fmt(p.value)} (${share})` });
+      hit.addEventListener('pointermove', (e) => showTip(e, `${fmt(p.value)} · ${share}`, p.label));
+      hit.addEventListener('pointerleave', hideTip);
+      svg.append(hit);
+      x += w + 2;
+    });
+    box.append(svg);
+  }
+
+  function table(t, head, rows) {
+    t.textContent = '';
+    const tr = document.createElement('tr');
+    head.forEach((h, i) => { const th = document.createElement('th'); th.textContent = h; if (i) th.className = 'n'; tr.append(th); });
+    t.append(tr);
+    rows.forEach((r) => { const row = document.createElement('tr'); r.forEach((c, i) => { const td = document.createElement('td'); td.textContent = i ? fmt(c) : c; if (i) td.className = 'n'; row.append(td); }); t.append(row); });
+  }
+
+  /* ---------------- the report ---------------- */
+  let LAST = null;
+  function render() {
+    if (!DATA) return;
+    const V = DATA.visits.filter((v) => inRange(v.day));
+    const E = DATA.events.filter((v) => inRange(v.day));
+    const S = DATA.sizes.filter((v) => inRange(v.day));
+    const L = DATA.locations.filter((v) => inRange(v.day));
+    const allDays = [...DATA.visits, ...DATA.events].map((v) => v.day).sort();
+    const from = range.from || allDays[0];
+    const to = range.to || allDays[allDays.length - 1];
+    const visits = sum(V);
+    const ev = (name) => sum(E.filter((e) => e.name === name));
+    const camp = sum(V.filter((v) => v.ref.type === 'campaign'));
+    $('t-visits').textContent = fmt(visits);
+    $('t-visits-d').textContent = from ? `${label(from)} – ${label(to)}` : '';
+    $('t-camp').textContent = fmt(camp);
+    $('t-stop').textContent = fmt(ev('stopping-point-reached'));
+    $('t-act').textContent = fmt(ev('activity-completed'));
+    $('range-text').textContent = from ? `${label(from)} ${from.slice(0, 4)} – ${label(to)} ${to.slice(0, 4)}` : 'no data in this range';
+
+    // daily
+    const days = from && to ? dayList(from, to) : [];
+    const per = {}; V.forEach((v) => { per[v.day] = (per[v.day] || 0) + v.count; });
+    const items = days.map((d) => ({ label: label(d), name: new Date(`${d}T12:00:00`).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }), value: per[d] || 0 }));
+    const best = items.reduce((b, i) => (i.value > (b ? b.value : -1) ? i : b), null);
+    $('s-daily').textContent = items.length ? `${fmt(visits)} visits over ${items.length} ${items.length === 1 ? 'day' : 'days'}${best && best.value ? `; busiest day ${best.name} (${fmt(best.value)})` : ''}. Days in ${TZ}.` : 'No visits in this date range.';
+    columns($('f-daily'), items);
+    table($('tb-daily'), ['Day', 'Visits'], days.map((d, i) => [d, items[i].value]));
+
+    // sources
+    const src = {}; V.forEach((v) => { const k = `${v.ref.type}|${v.ref.label}`; src[k] = (src[k] || 0) + v.count; });
+    let srcItems = Object.entries(src).map(([k, value]) => { const [type, lab] = k.split(/\|(.*)/s); return { type, label: type === 'campaign' ? `Campaign: ${lab}` : lab, value }; }).sort((a, b) => (a.type === 'campaign' ? -1 : 0) - (b.type === 'campaign' ? -1 : 0) || b.value - a.value);
+    if (srcItems.length > 8) { const rest = srcItems.slice(7); srcItems = [...srcItems.slice(0, 7), { type: 'other', label: `Other (${rest.length})`, value: rest.reduce((n, x) => n + x.value, 0) }]; }
+    hbars($('f-source'), srcItems.map((s) => ({ ...s, color: s.type === 'campaign' ? css('--blue') : css('--muted-bar') })), 'visits');
+    table($('tb-source'), ['Source', 'Visits'], srcItems.map((s) => [s.label, s.value]));
+
+    // devices + countries
+    const dev = { Phone: 0, Tablet: 0, Computer: 0 };
+    S.forEach((s) => { dev[s.width < 600 ? 'Phone' : s.width < 1024 ? 'Tablet' : 'Computer'] += s.count; });
+    const parts = [['Phone', '--s1'], ['Tablet', '--s2'], ['Computer', '--s3']].map(([l, c]) => ({ label: l, value: dev[l], color: css(c) }));
+    segbar($('f-device'), parts);
+    const lg = $('lg-device'); lg.textContent = '';
+    parts.forEach((p) => { const s = document.createElement('span'); const i = document.createElement('i'); i.style.background = p.color; s.append(i, document.createTextNode(p.label)); lg.append(s); });
+    table($('tb-device'), ['Device', 'Visits'], parts.map((p) => [p.label, p.value]));
+    const cc = {}; L.forEach((l) => { if (l.country) cc[l.country] = (cc[l.country] || 0) + l.count; });
+    let names; try { names = new Intl.DisplayNames(['en'], { type: 'region' }); } catch (e) { names = null; }
+    let ctry = Object.entries(cc).sort((a, b) => b[1] - a[1]).map(([c, value]) => ({ label: (names && names.of(c)) || c, value }));
+    if (ctry.length > 6) { const rest = ctry.slice(5); ctry = [...ctry.slice(0, 5), { label: `Other (${rest.length})`, value: rest.reduce((n, x) => n + x.value, 0) }]; }
+    hbars($('f-country'), ctry, 'visits');
+    table($('tb-country'), ['Country', 'Visits'], ctry.map((c) => [c.label, c.value]));
+
+    // events
+    const stopItems = STOP_ORDER.map((n) => ({ label: EVENTS[n], value: ev(n) }));
+    const actItems = ACT_ORDER.map((n) => ({ label: EVENTS[n], value: ev(n) }));
+    hbars($('f-stop'), stopItems);
+    hbars($('f-act'), actItems);
+    table($('tb-stop'), ['Action', 'Visitors'], stopItems.map((s) => [s.label, s.value]));
+    table($('tb-act'), ['Action', 'Visitors'], actItems.map((s) => [s.label, s.value]));
+    const feed = ev('view-feed'), stop = ev('stopping-point-reached'), sugg = ev('moment-suggestions-shown'), done = ev('activity-completed');
+    const nStop = $('n-stop'), nAct = $('n-act');
+    nStop.hidden = !(feed && stop); nAct.hidden = !(sugg && done);
+    if (feed && stop) nStop.textContent = `About ${Math.round((stop / feed) * 100)}% of visits that opened the feed reached a stopping point (${fmt(stop)} of ${fmt(feed)}).`;
+    if (sugg && done) nAct.textContent = `About ${Math.round((done / sugg) * 100)}% of visits that saw activity suggestions completed an activity (${fmt(done)} of ${fmt(sugg)}).`;
+    $('src-text').textContent = `Source: ${DATA.source}. Bots are excluded.`;
+    LAST = { from, to, visits, camp, days, items, srcItems, parts, ctry, stopItems, actItems };
+  }
+
+  /* ---------------- controls ---------------- */
+  function setPreset(p) {
+    document.querySelectorAll('#presets button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.p === p)));
+    const all = [...DATA.visits, ...DATA.events].map((v) => v.day).sort();
+    const last = all[all.length - 1];
+    if (p === 'all' || !last) range = { from: '', to: '' };
+    else { const d = new Date(`${last}T12:00:00`); d.setDate(d.getDate() - (Number(p) - 1)); range = { from: localDay(d.toISOString()), to: last }; }
+    $('from').value = range.from || all[0] || ''; $('to').value = range.to || last || '';
+    render();
+  }
+  document.querySelectorAll('#presets button').forEach((b) => b.addEventListener('click', () => setPreset(b.dataset.p)));
+  for (const id of ['from', 'to']) $(id).addEventListener('change', () => {
+    range = { from: $('from').value, to: $('to').value };
+    document.querySelectorAll('#presets button').forEach((b) => b.setAttribute('aria-pressed', 'false'));
+    render();
+  });
+
+  async function open(file) {
+    const err = $('err'); err.hidden = true;
+    try {
+      const data = await load(file);
+      if (!data.visits.length && !data.events.length) throw new Error('This export contains no visits yet. Try again after people have visited the site.');
+      DATA = data;
+      $('empty').hidden = true; $('report').hidden = false; $('actions').hidden = false;
+      setPreset('all');
+    } catch (e) {
+      err.textContent = e && e.message ? e.message : 'This file couldn’t be read.';
+      err.hidden = false;
+    }
+  }
+  $('file').addEventListener('change', (e) => { if (e.target.files[0]) open(e.target.files[0]); e.target.value = ''; });
+  const drop = $('empty');
+  drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('is-over'); });
+  drop.addEventListener('dragleave', () => drop.classList.remove('is-over'));
+  drop.addEventListener('drop', (e) => { e.preventDefault(); drop.classList.remove('is-over'); if (e.dataTransfer.files[0]) open(e.dataTransfer.files[0]); });
+  $('again').addEventListener('click', () => { DATA = null; $('report').hidden = true; $('actions').hidden = true; $('empty').hidden = false; });
+  let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(render, 150); });
+
+  // Summary file for spreadsheets or video editing software.
+  $('dl-summary').addEventListener('click', () => {
+    if (!LAST) return;
+    const q = (v) => (/[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v));
+    const lines = [['section', 'item', 'value'], ['range', 'from', LAST.from], ['range', 'to', LAST.to], ['total', 'visits', LAST.visits], ['total', 'visits from campaign links', LAST.camp]];
+    LAST.days.forEach((d, i) => lines.push(['visits per day', d, LAST.items[i].value]));
+    LAST.srcItems.forEach((s) => lines.push(['source', s.label, s.value]));
+    LAST.parts.forEach((p) => lines.push(['device', p.label, p.value]));
+    LAST.ctry.forEach((c) => lines.push(['country', c.label, c.value]));
+    [...LAST.stopItems, ...LAST.actItems].forEach((s) => lines.push(['visitors who', s.label, s.value]));
+    const blob = new Blob([`﻿${lines.map((l) => l.map(q).join(',')).join('\r\n')}\r\n`], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `scrollwise-visits-${LAST.from}-to-${LAST.to}.csv`; document.body.append(a); a.click(); a.remove();
+  });
+
+  // "Save as image": the chart card as a 2x PNG, for slides or the competition video.
+  document.querySelectorAll('.save').forEach((b) => b.addEventListener('click', async () => {
+    const card = b.closest('.card');
+    const svgs = [...card.querySelectorAll('.fig svg')];
+    if (!svgs.length) return;
+    const title = card.querySelector('h2').textContent;
+    const scale = 2, pad = 24, W = card.clientWidth;
+    const heights = svgs.map((s) => s.getBoundingClientRect().height);
+    const drawn = svgs.map((s, i) => heights[i] * ((W - pad * 2) / s.getBoundingClientRect().width));
+    const H = pad * 2 + 34 + drawn.reduce((n, h) => n + h + 16, 0) + 24;
+    const c = document.createElement('canvas'); c.width = W * scale; c.height = H * scale;
+    const g = c.getContext('2d'); g.scale(scale, scale);
+    g.fillStyle = css('--surface'); g.fillRect(0, 0, W, H);
+    g.fillStyle = css('--ink'); g.font = '650 18px system-ui, sans-serif'; g.fillText(title, pad, pad + 18);
+    let y = pad + 34;
+    for (let i = 0; i < svgs.length; i++) {
+      const s = svgs[i].cloneNode(true); s.setAttribute('xmlns', NS); s.setAttribute('width', svgs[i].getBoundingClientRect().width); s.setAttribute('height', heights[i]);
+      const img = new Image();
+      await new Promise((res) => { img.onload = res; img.onerror = res; img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(new XMLSerializer().serializeToString(s))}`; });
+      g.drawImage(img, pad, y, W - pad * 2, drawn[i]);
+      y += drawn[i] + 16;
+    }
+    g.fillStyle = css('--ink-3'); g.font = '12px system-ui, sans-serif';
+    g.fillText(`ScrollWise · ${LAST ? `${label(LAST.from)} – ${label(LAST.to)} ${LAST.to.slice(0, 4)}` : ''} · source: GoatCounter (cookieless)`, pad, H - pad + 4);
+    const a = document.createElement('a'); a.href = c.toDataURL('image/png'); a.download = `scrollwise-${b.dataset.chart}.png`; document.body.append(a); a.click(); a.remove();
+  }));
+}
+</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 # ScrollWise testing report
 
-Final release candidate, 20 November 2026.
+Final release candidate, 20 November 2026. Updated 21 November 2026 for anonymous visit counts.
 
 **Read this first:** every automated check below ran in **Google Chrome (Chromium engine) on Linux**, with phones and tablets **emulated** by screen size and touch. Nothing has been tested yet on a real iPhone, Android phone, iPad, Safari or Firefox, or on the live GitHub Pages site. Those checks are listed in section 4 and need the team.
 
@@ -16,7 +16,11 @@ Final release candidate, 20 November 2026.
 | Release QA | Subfolder hosting, timing on refresh/background/freeze, limits, stopping point, decisions, fresh visits, bypasses, Explore topics, dashboard maths, goals, reset, energy matching, research separation, accessibility, file names, fonts | 70 | All passed |
 | Research mode | Counterbalancing, records, answers, duplicates, resuming, CSV download/copy/show, deleting, real-time timer accuracy, 3-minute maximum | 38 | All passed |
 | Final build (`build:final`) | Builds without drafts; 7-post feed works | 4 | All passed |
-| **Total** | | **331** | **0 failures** |
+| Visit counts (analytics) | What is sent and when, campaign links, no cookies, Demo and research excluded, the Settings switch, Do Not Track, Global Privacy Control, a blocked counter, a build without a code | 36 | All passed |
+| Team visit report | Empty until a file is loaded, no internet connections, CSV, CSV.gz and JSON exports, wrong files, counts, days, sources, devices, countries, events, date ranges, PNG and CSV export, dark phone layout | 30 | All passed |
+| **Total** | | **397** | **0 failures** |
+
+After the visit-count changes on 21 November, these suites were run again on the new build and all passed: end-to-end real feed (87), release QA (70), research mode (38), unseen-first sessions on the real feed (6), and the timer and layout audit (23) on a build with counting switched on and the counter unreachable. The 80-post simulated feed, the full-feed sessions and `build:final` were not re-run; the changes don’t touch the feed, sessions or the final build.
 
 The tests were run again after every fix; the numbers above are from the final run.
 
@@ -63,6 +67,22 @@ The tests were run again after every fix; the numbers above are from the final r
 - Timer accuracy in real time: 10.0 s recorded for 10 s; a 3-minute maximum ended the feed at 180 s.
 - CSV: correct file name, header plus one row per feed, 27 columns, commas and quotes escaped, formula-like comments neutralised. Copy CSV and Show CSV text work.
 
+### Visit counts (analytics)
+These tests used a **stand-in for GoatCounter’s script** that records what would be sent; no real GoatCounter account was used.
+- With no site code (the current published state) the page has no counter, no Settings switch and no mention in the Privacy notice, and makes no request to GoatCounter.
+- With a code: one page view per visit, with the campaign from `?utm_campaign=poster-qr`; the campaign is then removed from the address bar; no cookies are set.
+- Events for opening the feed, reaching a stopping point, each of the three choices, seeing activity suggestions, starting and completing an activity, the dashboard and About page. Only event names are sent, never post names, captions or saved data.
+- Demo Mode sends only “demo-started”; research mode sends nothing, not even a page view.
+- The Settings switch stops counting immediately and is remembered; Do Not Track and Global Privacy Control stop all counting.
+- If the counter can’t load, the feed, timer and stopping point work normally.
+
+### Team visit report
+Tested with **made-up test exports** (kept outside the project, never published).
+- Shows nothing until a file is chosen; its security policy blocks every internet connection.
+- Reads GoatCounter CSV, gzipped CSV and JSON (ZIP) exports; rejects other files with a clear message.
+- Counts only first page views of a visit, without bots; groups days in the viewer’s time zone; campaigns, sources, devices, countries and events match the test file.
+- Date ranges, chart images (PNG), the summary CSV and the dark phone layout work.
+
 ### Accessibility and layout
 - Every control has an accessible name; every image has alt text.
 - No tap target is smaller than 24 × 24 px except links inside running text; most buttons are 34–44 px tall.
@@ -80,18 +100,19 @@ The tests were run again after every fix; the numbers above are from the final r
 - Size: `app.js` is 549 KB (about 169 KB compressed, as GitHub Pages sends it) and `app.css` 83 KB (16 KB compressed). The whole site is 3.4 MB, mostly photos of up to 170 KB each.
 
 ## 4. Needs manual testing (not yet done)
-1. **The live GitHub Pages site**, once published.
-2. **Real iPhone (Safari)**: safe areas around the notch and bottom bar, swiping carousels, double-tap, adding a photo to a finished activity, Share CSV, Home Screen version.
-3. **Real Android phone** (Chrome, Samsung Internet).
-4. **iPad and Android tablets**, portrait and landscape.
-5. **Windows laptop**: Chrome, Edge and **Firefox**. Safari on a Mac if available.
-6. **Locking the phone or switching apps** during a session: simulated here, not tried on a device.
-7. **Google Fonts online** (the test machine had no internet, so fallback fonts were used).
-8. **Text size**: larger text settings and browser zoom on real devices.
-9. **Screen readers**: VoiceOver (iPhone) and TalkBack (Android).
-10. **CSV files** opening in the Excel or Google Sheets the team will use.
-11. **Link previews** in chat apps, after setting `homepage`.
-12. **Speed** on an older phone and on mobile data.
+1. **The live GitHub Pages site** (published 20 November 2026) on the team’s own phones.
+2. **Live visit counts**, once the GoatCounter site code is set: a phone visit appears in the dashboard; a `?utm_campaign=poster-qr` visit appears under Campaigns; an export loads in the team report.
+3. **Real iPhone (Safari)**: safe areas around the notch and bottom bar, swiping carousels, double-tap, adding a photo to a finished activity, Share CSV, Home Screen version.
+4. **Real Android phone** (Chrome, Samsung Internet).
+5. **iPad and Android tablets**, portrait and landscape.
+6. **Windows laptop**: Chrome, Edge and **Firefox**. Safari on a Mac if available.
+7. **Locking the phone or switching apps** during a session: simulated here, not tried on a device.
+8. **Google Fonts online** (the test machine had no internet, so fallback fonts were used).
+9. **Text size**: larger text settings and browser zoom on real devices.
+10. **Screen readers**: VoiceOver (iPhone) and TalkBack (Android).
+11. **CSV files** opening in the Excel or Google Sheets the team will use.
+12. **Link previews** in chat apps, after setting `homepage`.
+13. **Speed** on an older phone and on mobile data.
 
 ### Quick manual checklist (about 5 minutes per device)
 - [ ] Welcome page loads with photos and the ScrollWise fonts
@@ -111,6 +132,7 @@ The tests were run again after every fix; the numbers above are from the final r
 - Small sample feed (see section 6), so Research Mode A repeats posts sooner and sessions are short.
 - Data stays in one browser on one device; Safari may delete it after about a week without a visit.
 - Research results are descriptive only.
+- Visit counts miss visitors who switch them off, use Do Not Track or Global Privacy Control, or block the counter; they count visits, not people. Scans of a QR code without a campaign link appear as Direct visits.
 - The feed is a simulation: fictional creators, no real social interaction.
 
 ## 6. Missing assets

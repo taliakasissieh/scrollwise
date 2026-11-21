@@ -5,11 +5,15 @@ import { INTERESTS } from '../data/activities.js';
 import { cx } from '../lib/util.js';
 import { POST_CHOICES } from '../store.js';
 import { allPhotos } from '../lib/library.js';
+import { analyticsConfigured, browserSaysNo, countingOff, setCountingOff } from '../lib/analytics.js';
 
 export function Settings({ state, dispatch, demoOn, onStartDemo, onExitDemo, onReset, onResetSettings, onBack, onOpen }) {
   const st = state.settings;
   const set = (key, value) => dispatch({ type: 'SET', key, value });
   const [confirm, setConfirm] = useState(false);
+  const [counting, setCounting] = useState(() => !countingOff());
+  const showCounting = analyticsConfigured() && !demoOn;
+  const dnt = browserSaysNo();
   const licensed = allPhotos().filter((p) => !p.ai);
   const aiCount = allPhotos().filter((p) => p.ai).length;
   const toggleInterest = (id) => set('interests', st.interests.includes(id) ? st.interests.filter((x) => x !== id) : [...st.interests, id]);
@@ -239,6 +243,30 @@ export function Settings({ state, dispatch, demoOn, onStartDemo, onExitDemo, onR
         <h2 id="s-more" className="set-title">
           About and privacy
         </h2>
+        {showCounting ? (
+          <div className="set-row">
+            <div>
+              <h3>Anonymous visit counts</h3>
+              <p>
+                {dnt
+                  ? 'Off: your browser asks websites not to track, so this device is never counted.'
+                  : counting
+                    ? 'Counts visits and a few actions, such as reaching a stopping point, without cookies or personal data. Turn it off to stop counting this device.'
+                    : 'Off: this device isn’t counted. Team members: keep it off on your own devices so tests don’t count as visitors.'}
+              </p>
+            </div>
+            <Switch
+              id="s-count"
+              checked={counting && !dnt}
+              onChange={(v) => {
+                if (dnt) return;
+                setCountingOff(!v);
+                setCounting(v);
+              }}
+              label="Anonymous visit counts"
+            />
+          </div>
+        ) : null}
         <ul className="link-list">
           <li>
             <button type="button" className="link-row" onClick={() => onOpen('about')}>
