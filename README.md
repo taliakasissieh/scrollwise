@@ -81,7 +81,7 @@ ScrollWise is an independent student project and is not made, approved or endors
 - Counts visits, where they came from (including poster campaign links such as `?utm_campaign=poster-qr`), and a few anonymous actions: reaching a stopping point, the choice made there, and starting or finishing an offline activity.
 - Never counts research mode or Demo Mode. Visitors can switch it off in Settings; Do Not Track and Global Privacy Control are respected.
 - A private **team analytics dashboard** (`/team-report/`) turns a GoatCounter export into charts in ScrollWise’s style: visits per day or week, QR-code visits, the stopping point, offline activities and engagement over time, with date filters. It also makes 1920 × 1080 images and CSV files for the competition video. It reads the file in the browser only and shows nothing until a real export is loaded.
-- Off until the team sets its GoatCounter code. See **[`ANALYTICS.md`](ANALYTICS.md)**.
+- Connected to GoatCounter with the site code `scrollwise` (set in `package.json`). See **[`ANALYTICS.md`](ANALYTICS.md)**.
 
 ### Also included
 - A concise welcome page, About page and plain-language Privacy notice.

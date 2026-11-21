@@ -2,7 +2,7 @@
 
 ScrollWise can count its visits anonymously with **GoatCounter**, a free, open-source analytics service built for privacy. The team can use the numbers to show ScrollWise's real reach and how people use it, without collecting anything about the people who visit.
 
-**Status:** everything is built and tested. Counting stays **off** until the team creates a GoatCounter account and the site code is set (section 2). Until then nothing is counted or sent, and the dashboard has nothing to show.
+**Status (21 November 2026):** the GoatCounter account exists and the site code `scrollwise` is set, so the published website counts visits (dashboard: `https://scrollwise.goatcounter.com`). The first real visit still has to be checked by hand (section 8). To switch counting off for everyone, set the code back to `""` in `package.json` and publish again.
 
 ---
 

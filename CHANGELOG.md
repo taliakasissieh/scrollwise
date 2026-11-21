@@ -1,5 +1,9 @@
 # Changelog
 
+## Visit counts switched on (21 November 2026)
+- GoatCounter site code `scrollwise` set in `package.json`; the published website now loads GoatCounter’s counter (the offline copy still never counts). Nothing else changed.
+- Automated checks on this build: GoatCounter’s own counting script on a simulated copy of the live address (33), what ScrollWise asks it to send (36), release QA (70), research mode (38), end-to-end real feed (87). All passed. A real visit reaching GoatCounter still has to be checked by hand.
+
 ## Team analytics dashboard (21 November 2026)
 - The team report is now a full analytics dashboard in ScrollWise’s navy, electric blue and green: visits, visits from QR codes, opened the feed, stopping points, activities started and completed; visits over time (daily or weekly, QR vs other); sources; the stopping-point choices (stepping away vs continuing); offline activities; engagement over time (counts or % of visits); devices and countries. Date presets and custom dates, tooltips by mouse or keyboard, a table, image and CSV for every chart.
 - New “For the competition video” section: five 1920 × 1080 images, script sentences written from the real numbers, CSV downloads with explanations, and what each number does and doesn’t mean (visits vs unique visitors vs page loads, QR vs direct visits, engagement vs proven impact).

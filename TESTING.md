@@ -21,6 +21,8 @@ Final release candidate, 20 November 2026. Updated 21 November 2026 for anonymou
 | Team analytics dashboard | Empty until a real export is loaded, no internet connections, JSON and CSV.gz exports, every total, every day (Asia/Amman), weeks, sources, choices, activities, devices, engagement, test visits left out, date ranges, % view, keyboard tooltips, five 1920 × 1080 images, chart images, CSV files with formulas neutralised, script sentences, dark phone layout | 45 | All passed |
 | **Total** | | **445** | **0 failures** |
 
+After the site code `scrollwise` was set (21 November), the analytics tests (33 with GoatCounter’s real script and 36 with the stand-in), release QA (70), research mode (38) and the end-to-end real feed (87) were run again on that build and all passed. Their requests to GoatCounter were recorded locally and never sent, so they say nothing yet about real data reaching GoatCounter.
+
 After the changes on 21 November, these suites were run again on the new build and all passed: end-to-end real feed (87), release QA (70), research mode (38), unseen-first sessions on the real feed (6), and the timer and layout audit (23) on a build with counting switched on and the counter unreachable. The 80-post simulated feed, the full-feed sessions and `build:final` were not re-run; the changes don’t touch the feed, sessions or the final build.
 
 The tests were run again after every fix; the numbers above are from the final run.
