@@ -1,5 +1,13 @@
 # Changelog
 
+## 122 more posts (21 November 2026)
+- 122 new posts from 42 new creators (plus a few from existing ones), in `src/data/posts-fashion.js` (54 fashion and beauty posts: outfits, denim, streetwear, thrift, menswear, knitwear, jewellery, bags, sneakers, skincare, nails, makeup, curly hair) and `src/data/posts-more.js` (18 food and cafés, 13 travel, 12 pets, 13 hobbies, 12 everyday). The feed now has 202 posts from 69 creators. Every post has its own caption, comments, like count and photo description; 26 have carousels.
+- The new posts are planned for real photographs without identifiable faces, so licensed photos (Unsplash, Pexels) or team photos can be used without putting fictional captions on real people. They stay hidden until their photo is installed: **no new photographs were added in this update**, because photo libraries can’t be reached from the environment where the update was made.
+- New `photos/licensed/` folder with a simple `credits.csv`, and a generated shopping list, `photos/FIND-PHOTOS.md`, with Unsplash and Pexels search links for every post still waiting for a photo.
+- Creators without a profile picture now show a close crop of their own first feed photo.
+- A data check: unique post ids, captions, descriptions, search words and like counts; known creators and commenters; carousel descriptions; picture names that can’t clash.
+- Tested with test pictures for all 202 posts (journey, all 26 sessions of unseen-first rotation without repeats, timer, performance on a throttled phone); the session timer, post limits, stopping point, activities, research mode and visit counts are unchanged.
+
 ## Visit counts switched on (21 November 2026)
 - GoatCounter site code `scrollwise` set in `package.json`; the published website now loads GoatCounter’s counter (the offline copy still never counts). Nothing else changed.
 - Automated checks on this build: GoatCounter’s own counting script on a simulated copy of the live address (33), what ScrollWise asks it to send (36), release QA (70), research mode (38), end-to-end real feed (87). All passed. A real visit reaching GoatCounter still has to be checked by hand.

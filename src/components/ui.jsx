@@ -2,7 +2,7 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { getArt, peekArt, tone } from '../lib/art.js';
 import { cx } from '../lib/util.js';
 import { Icon } from './Icon.jsx';
-import { CREATORS } from '../data/posts.js';
+import { CREATORS, creatorCover } from '../data/posts.js';
 import { activityPhoto, avatarPhoto, photo as libPhoto, postPhoto } from '../lib/library.js';
 
 // The ScrollWise mark: a scroll line that rises into a sun.
@@ -117,12 +117,14 @@ export function ActivityArt({ a, w = 640, h = 440, ...rest }) {
 }
 
 // Round profile picture: the creator's own picture if one was added (photos/ai/avatar-<username>.jpg),
-// else a crop of a licensed photo (CREATORS[user].avatar), else their initial. No real people's faces are used.
+// else a crop of a licensed photo (CREATORS[user].avatar), else a close crop of their first feed photo,
+// else their initial. No real people's faces are used.
 export function Avatar({ user, size = 'md', onClick }) {
   let inner;
   const c = CREATORS[user];
   const own = user === 'you' ? null : avatarPhoto(user);
   const crop = !own && c && c.avatar ? libPhoto(c.avatar[0]) : null;
+  const cover = !own && !crop && user !== 'you' ? creatorCover(user) : null;
   if (user === 'you') {
     inner = (
       <span className="avatar-face avatar-you">
@@ -134,6 +136,8 @@ export function Avatar({ user, size = 'md', onClick }) {
   } else if (crop) {
     const [, fx, fy, z] = c.avatar;
     inner = <Art w={200} h={200} photo={{ ...crop, focus: null }} className="avatar-face" style={{ '--fx': `${fx}%`, '--fy': `${fy}%`, '--z': z }} />;
+  } else if (cover) {
+    inner = <Art w={200} h={200} photo={cover} className="avatar-face" style={{ '--z': 1.6 }} />;
   } else {
     inner = (
       <span className="avatar-face avatar-mono" style={{ '--h': c ? c.hue : 220 }}>

@@ -12,6 +12,8 @@
 //   more   how many extra carousel photos it can have (each one is optional), described in `slides`
 // Posting times ("2 hours ago") are worked out from each post's place in the feed.
 import { photo } from '../lib/library.js';
+import { FASHION_CREATORS, FASHION_POSTS } from './posts-fashion.js';
+import { MORE_CREATORS, MORE_POSTS } from './posts-more.js';
 
 export const CATEGORIES = {
   friends: 'Friends & everyday',
@@ -24,7 +26,7 @@ export const CATEGORIES = {
 
 // avatar: [photo id, x %, y %, zoom] crops a licensed photo into a profile picture.
 // Otherwise a profile picture comes from photos/ai/avatar-<username>.jpg, or shows the creator's initial.
-export const CREATORS = {
+const FIRST_CREATORS = {
   'jun.wears': { name: 'Jun Park', topic: 'Fashion', hue: 18, bio: 'fit pics, thrift hauls and an unreasonable number of jackets' },
   'chloe.styled': { name: 'Chloé Martin', topic: 'Style', hue: 350, bio: 'vintage bags, good coats, bad weather' },
   'glambyrania': { name: 'Rania Saleh', topic: 'Beauty', hue: 330, bio: 'makeup, nails and hair experiments. GRWM every friday' },
@@ -54,9 +56,12 @@ export const CREATORS = {
   'its.hana.k': { name: 'Hana Kim', topic: 'Everyday', hue: 50, bio: 'professional overthinker. owner of @waffles.the.corgi' },
 };
 
+// The 80 original posts are below; 122 more are in posts-fashion.js and posts-more.js.
+export const CREATORS = { ...FIRST_CREATORS, ...FASHION_CREATORS, ...MORE_CREATORS };
+
 export const DEFAULT_FOLLOWS = ['amara.ok', 'lina.reads', 'zaid.eats', 'its.hana.k', 'kai.hoops', 'yasmin.daily'];
 
-export const ALL_POSTS = [
+const FIRST_POSTS = [
   /* ---------------- friends & everyday (20) ---------------- */
   {
     id: 'birthday-dinner', cat: 'friends', user: 'amara.ok', more: 2, likes: 1840,
@@ -533,13 +538,13 @@ export const ALL_POSTS = [
     comments: [['amara.ok', 'jealous jealous jealous'], ['low.tide.audio', '@amara.ok next one we go together'], ['mira.lens', 'the lighting in this!!']],
   },
   {
-    id: 'record-shop', cat: 'hobbies', user: 'low.tide.audio', likes: 688,
+    id: 'record-shop', cat: 'hobbies', user: 'low.tide.audio', likes: 713,
     caption: 'two hours crate digging, came out with one record with no sleeve notes. best purchase of the month',
     alt: 'Hands flipping through vinyl records in a wooden crate at a record shop',
     comments: [['mira.lens', 'mystery records are the best records']],
   },
   {
-    id: 'car-meet', cat: 'hobbies', user: 'ellis.drives', more: 2, place: 'Sunday car meet', likes: 1987,
+    id: 'car-meet', cat: 'hobbies', user: 'ellis.drives', more: 2, place: 'Sunday car meet', likes: 2034,
     caption: 'cleanest little boxy hatchback at the meet this morning. mint green, original paint. the owner let me sit in it and i nearly cried',
     alt: 'A mint-green 1980s hatchback with chrome bumpers parked among other classic cars on a sunny morning',
     slides: ['The retro dashboard and thin steering wheel inside the car', 'A row of classic cars lined up at the morning meet'],
@@ -558,12 +563,14 @@ export const ALL_POSTS = [
     comments: [['lina.reads', 'i need to lie down'], ['sam.ortiz', 'tiny galaxies, huge feelings']],
   },
   {
-    id: 'launch', cat: 'hobbies', user: 'orbit.notes', photo: 'launch-pad', ratio: '3:2', likes: 3866,
+    id: 'launch', cat: 'hobbies', user: 'orbit.notes', photo: 'launch-pad', ratio: '3:2', likes: 3912,
     caption: 'launch pad at blue hour, waiting for the countdown. who else watches launches live? photo: SpaceX (public domain) 🚀',
     alt: 'A white rocket standing on a launch pad at dusk with lights glowing',
     comments: [['kai.hoops', 'every single one'], ['ellis.drives', 'the scale of these things']],
   },
 ];
+
+export const ALL_POSTS = [...FIRST_POSTS, ...FASHION_POSTS, ...MORE_POSTS];
 
 /* ---------------- feed order ---------------- */
 // The feed opens with these, then mixes the sections evenly (so a session of 8 posts feels varied)
@@ -618,3 +625,9 @@ export const hasPhoto = (post) => !!(photo(post.photo) || photo(`post-${post.id}
 export const POSTS = mixFeed(ALL_POSTS.filter(hasPhoto)).map((p, i) => ({ ...p, time: p.time || timeFor(i) }));
 export const POST_BY_ID = Object.fromEntries(POSTS.map((p) => [p.id, p]));
 export const FEED_CREATORS = [...new Set(POSTS.map((p) => p.user))];
+
+// A creator without a profile picture of their own gets a close crop of their first photo in the feed
+// (a sneaker, a latte, a cat), like many real accounts. Creators with no photo yet show their initial.
+const COVERS = {};
+for (const p of POSTS) if (!COVERS[p.user]) COVERS[p.user] = photo(p.photo) || photo(`post-${p.id}`);
+export const creatorCover = (user) => COVERS[user] || null;

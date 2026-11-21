@@ -43,7 +43,7 @@ ScrollWise is an independent student project and is not made, approved or endors
 ## Features
 
 ### A familiar social feed, without the trap
-- Photo posts from 27 fictional creators: friends, food, style, pets, travel, sport, music and hobbies.
+- 202 photo posts from 69 fictional creators, with a strong fashion section (outfits, streetwear, thrift, accessories, beauty) alongside friends, food and cafés, pets, travel, sport, music and hobbies. A post appears once its photo is installed (see `PHOTOS.md`).
 - Likes, double-tap to like, comments, bookmarks, follows, creator profiles, multi-photo carousels and a Saved page.
 - **Explore** has topic filters (Friends, Food, Style, Pets, Travel, Hobbies). They only change which of this session’s posts you see: the session keeps the same size and the same stopping point.
 - Posts you haven’t seen come first in every new session. Nothing repeats until you’ve seen everything available.
@@ -207,7 +207,7 @@ See **[CREDITS.md](CREDITS.md)**: licensed photo credits (CC0, CC BY 2.0, public
 
 ## Known limitations
 
-- **Photographs are incomplete.** 22 of the 80 posts currently have a main picture, and 15 of those (plus 5 carousel photos) are temporary drafts enlarged from small previews. Posts without a picture stay hidden, so the feed is short and mostly “Friends & everyday”. See `PHOTO-MANIFEST.md`. `npm run build:final` builds without the drafts (7 posts).
+- **Photographs are incomplete.** 22 of the 202 posts currently have a main picture, and 15 of those (plus 5 carousel photos) are temporary drafts enlarged from small previews. Posts without a picture stay hidden, so the live feed is still short and mostly “Friends & everyday”. The 122 posts added on 21 November need licensed or team-taken photos: `photos/FIND-PHOTOS.md` lists them with search links. See `PHOTO-MANIFEST.md`. `npm run build:final` builds without the drafts (7 posts).
 - **It’s a prototype.** There’s no real social network: creators, posts and comments are fictional, and nobody else sees your interactions.
 - **Data stays in one browser** on one device. Private windows forget it, and Safari may delete a site’s data if it isn’t opened for about a week.
 - **Research mode isn’t proof.** It gives descriptive results from small groups. Mode A repeats posts once the available ones run out.

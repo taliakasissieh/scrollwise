@@ -6,8 +6,8 @@ Tick everything before ScrollWise is published or presented. Items marked **Bloc
 
 ## 1. Decisions that need Talia
 - [ ] **Blocker: approval to publish.** Nothing is published to GitHub without Talia’s approval.
-- [ ] **Blocker: photographs.** Check `PHOTO-MANIFEST.md`. At this release, 22 of 80 posts have a main picture, and 15 of those (plus 5 carousel photos) are temporary drafts enlarged from small previews. Posts without a picture stay hidden, so the feed is short and mostly “Friends & everyday”. Choose one:
-  - [ ] Complete the pictures first (recommended for the final release): prompts are in `photos/PROMPTS-NEEDED.md`.
+- [ ] **Blocker: photographs.** Check `PHOTO-MANIFEST.md`. At this release, 22 of 202 posts have a main picture, and 15 of those (plus 5 carousel photos) are temporary drafts enlarged from small previews. Posts without a picture stay hidden, so the feed is short and mostly “Friends & everyday”. Choose one:
+  - [ ] Complete the pictures first (recommended for the final release): licensed photos for the 122 new posts are listed with search links in `photos/FIND-PHOTOS.md`; prompts for the original posts are in `photos/PROMPTS-NEEDED.md`.
   - [ ] Publish now as a clearly labelled prototype with the current 22-post sample feed, and say in the presentation that the photo set is still being completed.
   - (`npm run build:final` removes the drafts, but leaves only 7 posts, which is too few for a good demo.)
 - [ ] **AI image sources recorded.** For every AI-generated picture, note which tool made it and check that its terms allow publishing.

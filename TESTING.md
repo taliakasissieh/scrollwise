@@ -9,9 +9,11 @@ Final release candidate, 20 November 2026. Updated 21 November 2026 for anonymou
 | Test suite | What it covers | Checks | Result |
 | --- | --- | ---: | --- |
 | End-to-end, real feed (22 posts) | Feed, interactions, carousels, stopping point, continue, Find Your Next Moment, activities, dashboard, saved data, demo, reset | 87 | All passed |
-| End-to-end, simulated full feed (80 posts) | The same test with test pictures for every post (not part of the project) | 87 | All passed |
+| End-to-end, simulated full feed (202 posts) | The same test with test pictures for every post (not part of the project) | 87 | All passed |
 | Unseen-first sessions, real feed | 22 posts over three sessions, no repeats, then “all caught up” | 6 | All passed |
-| Unseen-first sessions, full feed | 80 posts over 10 sessions, no repeats, then oldest-first | 16 | All passed |
+| Unseen-first sessions, full feed | 202 posts over 26 sessions, no repeats, then oldest-first | 29 | All passed |
+| Feed data check | 202 posts: unique ids, captions, descriptions, search words and like counts; known creators and commenters; carousel descriptions; no clashing picture names | 1 script, 0 problems | Passed |
+| Performance, 202 posts | Throttled phone (4× slower CPU, 4G speed): only the current session’s photos load (21 of 248), first photo in about 0.2 s, no blocking while scrolling, same memory and page size as the 22-post feed | measured | Passed |
 | Timer and layout audit | Timer counting and pausing, limits, reminders; 9 screens at 7 sizes incl. 320 px, landscape, tablet, desktop, dark | 23 | All passed |
 | Release QA | Subfolder hosting, timing on refresh/background/freeze, limits, stopping point, decisions, fresh visits, bypasses, Explore topics, dashboard maths, goals, reset, energy matching, research separation, accessibility, file names, fonts | 70 | All passed |
 | Research mode | Counterbalancing, records, answers, duplicates, resuming, CSV download/copy/show, deleting, real-time timer accuracy, 3-minute maximum | 38 | All passed |
@@ -19,7 +21,9 @@ Final release candidate, 20 November 2026. Updated 21 November 2026 for anonymou
 | Visit counts (analytics) | What ScrollWise asks the counter to send, campaign links, no cookies, Demo and research excluded, the Settings switch, Do Not Track, Global Privacy Control, a blocked counter, a build without a code | 36 | All passed |
 | Visit counts with GoatCounter’s real script | GoatCounter’s own `count.js` on a simulated copy of the live address: the exact requests a visitor’s browser sends, one page view per page load, campaign and source names, nothing personal, reloads, referrers, research mode, the switch, Do Not Track, GPC, a blocked counter, automated browsers marked as bots | 33 | All passed |
 | Team analytics dashboard | Empty until a real export is loaded, no internet connections, JSON and CSV.gz exports, every total, every day (Asia/Amman), weeks, sources, choices, activities, devices, engagement, test visits left out, date ranges, % view, keyboard tooltips, five 1920 × 1080 images, chart images, CSV files with formulas neutralised, script sentences, dark phone layout | 45 | All passed |
-| **Total** | | **445** | **0 failures** |
+| **Total** | | **458** | **0 failures** |
+
+After the 122 new posts were added (21 November), these were run again on the real build and all passed: end-to-end real feed (87), release QA (70), unseen-first sessions (6), research mode (38), visit counts (36 with the stand-in, 33 with GoatCounter’s real script). On the 202-post test copy: end-to-end (87), sessions (29) and the timer and layout audit (23).
 
 After the site code `scrollwise` was set (21 November), the analytics tests (33 with GoatCounter’s real script and 36 with the stand-in), release QA (70), research mode (38) and the end-to-end real feed (87) were run again on that build and all passed. Their requests to GoatCounter were recorded locally and never sent, so they say nothing yet about real data reaching GoatCounter.
 

@@ -22,6 +22,7 @@ A short guide for the student team: how to keep ScrollWise working, update it an
 | Edit a post’s caption or comments | `src/data/posts.js`. Captions and comments are fictional, so keep them friendly and suitable for teenagers. |
 | Add or edit an activity | `src/data/activities.js`. Copy an existing activity and change every field. Each needs clear steps, materials, a time, an energy level, moods and interests. |
 | Add or replace a photo | Follow “Replacing photographs” in `README.md`. Check `PHOTO-MANIFEST.md` for the file name. |
+| Find photos for the 122 new posts | Work through `photos/FIND-PHOTOS.md` (fashion first): download a licensed photo, put it in `photos/licensed/`, add a row to `photos/licensed/credits.csv`. No identifiable faces. See `PHOTOS.md`, section C. |
 | Change colours | The tokens at the top of `src/styles.css`. Check text is still easy to read in light **and** dark mode. |
 | See your change | `npm run dev`, then open `dist/scrollwise.html` and refresh after each save. |
 | Publish the change | `npm run build`, then upload `docs/` (see `PUBLISHING.md`). |
@@ -61,7 +62,7 @@ Read `research/ScrollWise-Research-Guide.pdf` before testing anyone. School appr
 | Role | Looks after |
 | --- | --- |
 | Content | Posts, activities, About page wording |
-| Photos | `PHOTO-MANIFEST.md`, new pictures, credits |
+| Photos | `PHOTO-MANIFEST.md`, `photos/FIND-PHOTOS.md`, new pictures, credits |
 | Testing | The checklists above and in `TESTING.md` |
 | Research | Recruitment, sessions, data export, results |
 | Numbers | Visit counts, campaign links, charts for the video |

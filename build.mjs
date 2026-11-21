@@ -182,6 +182,14 @@ async function loadSlots() {
     slots = null; // can't check names; every picture is included as named
   }
 }
+// The description of the picture that fills a slot (used for photo credits).
+function slotAlt(id) {
+  for (const p of allPosts) {
+    if (id === `post-${p.id}`) return p.alt;
+    for (let i = 2; i <= (p.more || 0) + 1; i++) if (id === `post-${p.id}-${i}`) return (p.slides && p.slides[i - 2]) || p.alt;
+  }
+  return '';
+}
 function slotFor(stem) {
   const id = stem.trim().toLowerCase().replace(/[\s_]+/g, '-').replace(/-+/g, '-');
   if (!slots || slots.has(id)) return id;
@@ -220,6 +228,35 @@ function loadPhotos() {
   }
   for (const f of readdirSync(dir)) {
     if (/\.(jpe?g|png|webp)$/i.test(f) && !credited.has(f)) console.warn(`⚠ photos/${f} has no entry in credits.json, so it was not included`);
+  }
+  // 1b. Licensed photos, the easy way: photos/licensed/<post-id>.jpg plus one row in photos/licensed/credits.csv
+  //     (file, author, licence, link). A photo without a complete row is left out: no credit, no photo.
+  const licDir = `${dir}/licensed`;
+  if (existsSync(licDir)) {
+    const [head = [], ...crow] = existsSync(`${licDir}/credits.csv`) ? parseCSV(readFileSync(`${licDir}/credits.csv`, 'utf8')) : [];
+    const col = (...names) => head.findIndex((h) => names.includes(String(h).trim().toLowerCase()));
+    const C = { file: col('file'), author: col('author', 'photographer'), license: col('licence', 'license'), licenseLink: col('licence_link', 'license_link'), link: col('link', 'source_link', 'page'), changes: col('changes') };
+    const credit = new Map();
+    for (const r of crow) {
+      const get = (k) => (C[k] >= 0 ? String(r[C[k]] || '').trim() : '');
+      if (get('file')) credit.set(get('file').toLowerCase(), { author: get('author'), license: get('license'), licenseLink: get('licenseLink'), link: get('link'), changes: get('changes') });
+    }
+    const KNOWN = { 'unsplash license': 'https://unsplash.com/license', 'pexels license': 'https://www.pexels.com/license/', 'cc0 1.0': 'https://creativecommons.org/publicdomain/zero/1.0/', cc0: 'https://creativecommons.org/publicdomain/zero/1.0/' };
+    for (const f of readdirSync(licDir).sort()) {
+      if (!/\.(jpe?g|png|webp)$/i.test(f) || f.startsWith('.')) continue;
+      const c = credit.get(f.toLowerCase());
+      if (!c || !c.author || !c.license || !c.link) {
+        console.warn(`⚠ photos/licensed/${f} left out: it needs a row in photos/licensed/credits.csv with the author, licence and link`);
+        continue;
+      }
+      const id = slotFor(f.replace(/\.[^.]+$/, ''));
+      if (slots && !slots.has(id)) { console.warn(`⚠ photos/licensed/${f} doesn't match any post, profile picture or activity, so it was not included`); continue; }
+      if (ids.has(id)) { console.warn(`⚠ photos/licensed/${f} skipped: "${id}" already has a picture`); continue; }
+      const img = readImage(`${licDir}/${f}`);
+      if (!img) { console.warn(`⚠ photos/licensed/${f} skipped: not a JPEG, PNG or WebP image`); continue; }
+      ids.add(id);
+      out.push({ id, file: `licensed/${f}`, alt: slotAlt(id), author: c.author, license: c.license, licenseLink: c.licenseLink || KNOWN[c.license.toLowerCase()] || '', link: c.link, source: /unsplash/i.test(c.link) ? 'Unsplash' : /pexels/i.test(c.link) ? 'Pexels' : 'Source', ...(c.changes ? { changes: c.changes } : {}), ...img });
+    }
   }
   // 2. AI-generated pictures: photos/ai/<slot>.jpg (or .png/.webp), e.g. post-mirror-fit.jpg,
   //    post-mirror-fit-2.jpg, avatar-jun.wears.jpg. No credits entry needed; the app labels them "AI info".
@@ -411,6 +448,10 @@ function writeManifest(photos) {
         // The drafts were enlarged from small previews, so their pixel size says nothing about their real detail.
         extra = notes[im.slot] ? notes[im.slot].replace(/^Low-resolution draft[^.]*\.\s*/, '') : '';
         todo = `Replace with a final image generated at full resolution, at least ${w} × ${h} px. The draft was enlarged from a small preview, so it isn't genuinely high-resolution. ${extra}`.trim();
+      } else if (have && !have.ai && have.license) {
+        status = 'Licensed photo';
+        source = `${have.license}: ${have.author}, ${have.link}${have.changes ? ` (${have.changes})` : ''}`;
+        todo = have.w < w * 0.9 ? `Check quality: only ${have.w} × ${have.h} px` : 'None: keep';
       } else if (have) {
         status = have.ai ? 'Final AI image' : 'Installed';
         source = have.ai ? 'AI-generated image supplied by the team. Record the generator and check its terms allow publishing.' : 'See photos/credits.json';
@@ -418,7 +459,8 @@ function writeManifest(photos) {
       } else {
         status = 'Missing';
         source = '';
-        todo = im.n === 1 ? `Needed before this post can appear. Create from the prompt in photos/PROMPTS-NEEDED.md, at least ${w} × ${h} px.` : `Optional carousel photo. Create from the prompt in photos/PROMPTS-NEEDED.md, at least ${w} × ${h} px.`;
+        const how = p.find ? 'Find a licensed photo (photos/FIND-PHOTOS.md) or take one, or create it from the prompt in photos/PROMPTS-NEEDED.md' : 'Create from the prompt in photos/PROMPTS-NEEDED.md';
+        todo = im.n === 1 ? `Needed before this post can appear. ${how}, at least ${w} × ${h} px.` : `Optional carousel photo. ${how}, at least ${w} × ${h} px.`;
       }
       rows.push({
         post: p.id,
@@ -433,6 +475,7 @@ function writeManifest(photos) {
         source,
         todo,
         prompt: pr.prompt || '',
+        find: p.find || '',
         person: pr.recurring_person || '',
         extra,
       });
@@ -449,7 +492,7 @@ function writeManifest(photos) {
   md.push('Generated by `npm run build` from the files that are really in `photos/`. Do not edit by hand: add or replace pictures, then build again.', '');
   md.push('A post appears in the feed only when its **main** picture exists. Carousel photos are optional extras.', '');
   md.push('## Summary', '');
-  md.push('| | Main pictures (80 posts) | Carousel photos | All |', '| --- | ---: | ---: | ---: |');
+  md.push(`| | Main pictures (${mains.length} posts) | Carousel photos | All |`, '| --- | ---: | ---: | ---: |');
   for (const st of ['Licensed photo', 'Final AI image', 'Temporary draft', 'Missing']) {
     md.push(`| ${st} | ${count((r) => r.image === 'main' && r.status === st)} | ${count((r) => r.image !== 'main' && r.status === st)} | ${count((r) => r.status === st)} |`);
   }
@@ -459,7 +502,7 @@ function writeManifest(photos) {
     const m = mains.filter((r) => r.section === sec);
     md.push(`| ${sec} | ${m.length} | ${m.filter((r) => r.status !== 'Missing').length} | ${m.filter((r) => r.status === 'Temporary draft').length} |`);
   }
-  md.push('', '**Requirements for every new picture:** photorealistic and sharp at the size given; suitable for a teenage audience; fictional people only (no real or famous people); no text, logos, brand names or watermarks; no repeats of another picture; made with a tool whose terms allow publishing, or a licensed photo credited in `photos/credits.json`. Never enlarge a small image and call it high resolution.', '');
+  md.push('', '**Requirements for every new picture:** sharp at the size given; suitable for a teenage audience; no identifiable faces in licensed or team photos (outfits neck-down, from behind or with the phone covering the face), and fictional people only in AI images; no text, logos, brand names or watermarks; no repeats of another picture; a licensed photo credited in `photos/licensed/credits.csv` (or `photos/credits.json`), a photo the team took, or an AI image from a tool whose terms allow publishing. Never enlarge a small image and call it high resolution.', '');
   for (const sec of Object.values(SECTIONS)) {
     md.push(`## ${sec}`, '', '| Post | Image | File | Description | Size needed | Status | Source / licence | What’s needed |', '| --- | --- | --- | --- | --- | --- | --- | --- |');
     for (const r of rows.filter((x) => x.section === sec)) md.push(`| ${r.post} | ${r.image} | \`${r.file}\` | ${r.description.replace(/\|/g, '/')} | ${r.size} | ${r.status}${r.current ? ` (${r.current})` : ''} | ${r.source.replace(/\|/g, '/') || '–'} | ${r.todo.replace(/\|/g, '/')} |`);
@@ -484,6 +527,35 @@ function writeManifest(photos) {
     }
   }
   writeFileSync('photos/PROMPTS-NEEDED.md', pm.join('\n'));
+
+  // photos/FIND-PHOTOS.md: a shopping list of licensed photos to find, with search links.
+  const hunt = rows.filter((r) => r.status === 'Missing' && r.find && r.image === 'main');
+  const extras = rows.filter((r) => r.status === 'Missing' && r.find && r.image !== 'main');
+  const q = (s) => encodeURIComponent(s.trim());
+  const fp = ['# Photos to find', '', `Generated by \`npm run build\`. ${hunt.length} posts are waiting for their main photo, plus ${extras.length} optional carousel photos. A post appears in the feed as soon as its main photo is installed.`, ''];
+  fp.push('## How to add a licensed photo', '');
+  fp.push('1. Open a search link below (Unsplash or Pexels: both are free to use). Pick a sharp, natural-looking photo that matches the description. **No identifiable faces**: outfits neck-down, from behind or with a phone covering the face. No visible logos or brand names. Avoid photos that look AI-generated.');
+  fp.push('2. Download it (the largest size is fine: the build resizes and compresses it).');
+  fp.push('3. Name it after the post, e.g. `post-trench-weather.jpg`, and put it in `photos/licensed/`. Carousel photos end in `-2`, `-3`.');
+  fp.push('4. Add one row to `photos/licensed/credits.csv`: the file name, the photographer’s name, the licence (`Unsplash License` or `Pexels License`) and the link to the photo’s page.');
+  fp.push('5. Run `npm run build`. Without a complete credits row, a photo is left out.', '');
+  fp.push('Photos the team takes itself are welcome too (with the same rules); use “ScrollWise team” as the author, “Own photo” as the licence and any link to the project.', '');
+  fp.push('Or send the photos and their page links to whoever maintains the site (or to Claude) and they can be added for you.', '');
+  const fashionFirst = [SECTIONS.style, ...Object.values(SECTIONS).filter((s) => s !== SECTIONS.style)];
+  for (const sec of fashionFirst) {
+    const list = hunt.filter((r) => r.section === sec);
+    if (!list.length) continue;
+    fp.push(`## ${sec} (${list.length})`, '');
+    fp.push('| Post | File name | What the photo shows | Shape | Search |', '| --- | --- | --- | --- | --- |');
+    for (const r of list) fp.push(`| ${r.post} (${r.creator}) | \`post-${r.post}.jpg\` | ${r.description.replace(/\|/g, '/')} | ${r.size.replace(/^.*\(/, '').replace(/\)$/, '')} | [Unsplash](https://unsplash.com/s/photos/${q(r.find.replace(/\s+/g, '-'))}) · [Pexels](https://www.pexels.com/search/${q(r.find)}/) |`);
+    fp.push('');
+  }
+  if (extras.length) {
+    fp.push('## Optional carousel photos', '', '| Post | File name | What the photo shows |', '| --- | --- | --- |');
+    for (const r of extras) fp.push(`| ${r.post} | \`${r.file.split('/').pop()}\` | ${r.description.replace(/\|/g, '/')} |`);
+    fp.push('');
+  }
+  writeFileSync('photos/FIND-PHOTOS.md', fp.join('\n'));
   // Exact duplicates are never allowed (the same picture used twice).
   const seen = new Map();
   for (const ph of photos) {
@@ -491,7 +563,7 @@ function writeManifest(photos) {
     if (seen.has(h)) console.warn(`⚠ ${ph.id} is the same picture as ${seen.get(h)}: use a different picture`);
     else seen.set(h, ph.id);
   }
-  console.log(`  Photo manifest: PHOTO-MANIFEST.md and photos/manifest.csv (${rows.length} pictures); prompts for the ${need.length} still needed: photos/PROMPTS-NEEDED.md`);
+  console.log(`  Photo manifest: PHOTO-MANIFEST.md and photos/manifest.csv (${rows.length} pictures); prompts for the ${need.length} still needed: photos/PROMPTS-NEEDED.md; licensed photos to find: photos/FIND-PHOTOS.md (${hunt.length})`);
 }
 
 const mb = (n) => `${(n / 1048576).toFixed(1)} MB`;

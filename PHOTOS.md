@@ -2,22 +2,26 @@
 
 The feed shows **photographs only**. A post appears once it has a picture; until then it is skipped, so the feed never shows a drawing, an empty box or a file name. Every build lists the posts that are still waiting.
 
-There are **80 posts** from 27 fictional creators, in six sections:
+There are **202 posts** from 69 fictional creators, in six sections:
 
-| Section | Posts |
-| --- | --- |
-| Friends & everyday | 20 |
-| Fashion & beauty | 15 |
-| Food & cafés | 15 |
-| Pets & funny moments | 10 |
-| Travel & lifestyle | 10 |
-| Sports, music & hobbies | 10 |
+| Section | First 80 posts | Added 21 November 2026 | Total |
+| --- | ---: | ---: | ---: |
+| Friends & everyday | 20 | 12 | 32 |
+| Fashion & beauty | 15 | 54 | 69 |
+| Food & cafés | 15 | 18 | 33 |
+| Pets & funny moments | 10 | 12 | 22 |
+| Travel & lifestyle | 10 | 13 | 23 |
+| Sports, music & hobbies | 10 | 13 | 23 |
+
+**The 122 posts added on 21 November** (in `src/data/posts-fashion.js` and `src/data/posts-more.js`) were planned for **real photographs**: licensed photos from Unsplash or Pexels, or photos the team takes. None of their pictures needs an identifiable face: outfits are shown neck-down, from behind or as mirror selfies with the phone covering the face, and the rest are flat lays, details, food, places and animals. That keeps real people from appearing under fictional names and captions. **`photos/FIND-PHOTOS.md`** lists every one, fashion first, with Unsplash and Pexels search links, and section C below explains how to add them. They can also be made with AI (their prompts are in `photos/ai/prompts.csv`), but real photos are preferred.
+
+Creators without a profile picture of their own automatically use a close crop of their first photo in the feed (a sneaker, a latte, a cat), like many real accounts.
 
 **6 posts** already use real, licensed photos. The other **74 posts**, plus 20 optional carousel photos and 22 profile pictures, each have a ready-made prompt for an AI image generator.
 
 **Start with the manifest.** Every build writes three files from the pictures that are really installed:
 
-- **`PHOTO-MANIFEST.md`** (and `photos/manifest.csv` for spreadsheets): all 80 posts and their carousel photos, with file name, section, description, size needed, status (licensed, final AI image, temporary draft or missing), source and licence, and what still has to be done.
+- **`PHOTO-MANIFEST.md`** (and `photos/manifest.csv` for spreadsheets): all 202 posts and their carousel photos, with file name, section, description, size needed, status (licensed, final AI image, temporary draft or missing), source and licence, and what still has to be done.
 - **`photos/PROMPTS-NEEDED.md`**: the exact prompt for every picture that is missing or only a temporary draft, main post pictures first.
 - **`photos/ai/missing.csv`** and **`photos/ai/replace.csv`**: the same lists in CSV form.
 
@@ -32,10 +36,28 @@ Each complete prompt has up to five parts:
 4. **The quality rules**, the same for every picture: *Photorealistic, professional camera quality, realistic textures, accurate anatomy with natural hands and believable faces, no excessive retouching, no text, no logos, no watermark, no illustration, cartoon or 3D-render look.*
 5. **The shape**, e.g. *Vertical 4:5 aspect ratio (1080 × 1350).*
 
-There are two ways to give a post its picture:
+There are three ways to give a post its picture:
 
-- **A. An AI-generated image** (quickest): drop it into `photos/ai/`. No credits file needed.
-- **B. A licensed photo** from Unsplash or Pexels: put it in `photos/` and credit it in `photos/credits.json`.
+- **A. An AI-generated image:** drop it into `photos/ai/`. No credits file needed; the post is labelled “AI info”.
+- **B. A licensed photo** credited in `photos/credits.json` (the original method, for photos with special crops).
+- **C. A licensed photo or a photo the team took, the easy way** (recommended for the 122 new posts): put it in `photos/licensed/` named after the post, and add one row to `photos/licensed/credits.csv`.
+
+## C. Adding licensed photos the easy way
+
+1. Open `photos/FIND-PHOTOS.md` and pick a post. Use its Unsplash or Pexels search link.
+2. Choose a sharp, natural photo that matches the description: **no identifiable faces**, no logos or brand names, nothing that looks AI-generated, nothing already used in the feed.
+3. Download it and name it after the post: `post-trench-weather.jpg` (carousel photos: `post-trench-weather-2.jpg`).
+4. Put it in `photos/licensed/` and add a row to `photos/licensed/credits.csv`:
+
+   ```csv
+   file,author,licence,link,changes
+   post-trench-weather.jpg,Photographer Name,Unsplash License,https://unsplash.com/photos/...,
+   ```
+
+   For a photo the team took: author `ScrollWise team`, licence `Own photo`. Only photograph people who agreed, and keep faces out of frame.
+5. Run `npm run build`. The post appears, the photo is resized and compressed automatically, and it is listed under Settings → Photo credits. A photo without a complete row is left out.
+
+If the post’s photo turns out a little different from its description (say, a grey coat instead of a beige one), change the post’s `alt` text in the data file so it describes the real photo.
 
 ## A. Adding AI-generated images
 
@@ -91,7 +113,9 @@ Some creators (and pets) appear in several photos. Their prompts all include the
 The build makes two versions:
 
 - `docs/`: the website (for GitHub Pages). Pictures are separate 1080 px files in `docs/photos/` that load as you scroll, so it stays fast however many posts there are.
-- `dist/scrollwise.html`: an offline copy in one file, with every picture inside it (resized to 828 px wide). With pictures for all 80 posts it comes to about 9–10 MB.
+- `dist/scrollwise.html`: an offline copy in one file, with every picture inside it (resized to 828 px wide). With pictures for all 202 posts it would be roughly 20–30 MB, so use the website for everyday use and the offline copy only for presenting without internet.
+
+Tested with test pictures for all 202 posts on a throttled phone (4× slower processor, 4G-speed connection): the feed only downloads the photos of the current session (about 20 photos, under 2 MB), the first photo appears in about a fifth of a second after opening the feed, and scrolling stays smooth. Adding posts doesn’t slow the website down.
 
 `npm run build:final` builds both without the temporary drafts in `photos/ai/temporary/` (posts whose only picture is a draft are then hidden).
 
