@@ -81,6 +81,23 @@ export function setCountingOff(off) {
 
 export const countingActive = () => analyticsConfigured() && !browserSaysNo() && !countingOff() && state !== 'off';
 
+// GoatCounter's exports keep a campaign's *source* name but not its campaign name. So when a link
+// has ?utm_campaign=poster-qr but no source, the campaign name is copied into utm_source before
+// counting. That way the team report can still tell poster-qr visits from other campaign visits.
+function nameCampaignSource() {
+  try {
+    const u = new URL(window.location.href);
+    const p = u.searchParams;
+    const campaign = (p.get('utm_campaign') || p.get('campaign') || '').trim();
+    const hasSource = ['utm_source', 'ref', 'src', 'source'].some((k) => (p.get(k) || '').trim());
+    if (!campaign || hasSource) return;
+    p.set('utm_source', campaign.slice(0, 60));
+    window.history.replaceState(window.history.state, '', u.pathname + u.search + u.hash);
+  } catch (e) {
+    /* leave the address as it is */
+  }
+}
+
 // Campaign links (e.g. ?utm_campaign=poster-qr) are read once, then removed from the address bar,
 // so a link someone copies and shares later isn't counted as another poster visit.
 function cleanAddress() {
@@ -124,6 +141,7 @@ export function startAnalytics({ countPage = true } = {}) {
     s.setAttribute('data-goatcounter', `https://${code()}.goatcounter.com/count`);
     s.onload = () => {
       state = 'ready';
+      nameCampaignSource();
       if (countPage) send({ path: '/', title: 'ScrollWise' });
       cleanAddress();
       while (queue.length) send(queue.shift());

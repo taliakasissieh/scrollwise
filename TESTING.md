@@ -1,6 +1,6 @@
 # ScrollWise testing report
 
-Final release candidate, 20 November 2026. Updated 21 November 2026 for anonymous visit counts.
+Final release candidate, 20 November 2026. Updated 21 November 2026 for anonymous visit counts and the team analytics dashboard.
 
 **Read this first:** every automated check below ran in **Google Chrome (Chromium engine) on Linux**, with phones and tablets **emulated** by screen size and touch. Nothing has been tested yet on a real iPhone, Android phone, iPad, Safari or Firefox, or on the live GitHub Pages site. Those checks are listed in section 4 and need the team.
 
@@ -16,11 +16,12 @@ Final release candidate, 20 November 2026. Updated 21 November 2026 for anonymou
 | Release QA | Subfolder hosting, timing on refresh/background/freeze, limits, stopping point, decisions, fresh visits, bypasses, Explore topics, dashboard maths, goals, reset, energy matching, research separation, accessibility, file names, fonts | 70 | All passed |
 | Research mode | Counterbalancing, records, answers, duplicates, resuming, CSV download/copy/show, deleting, real-time timer accuracy, 3-minute maximum | 38 | All passed |
 | Final build (`build:final`) | Builds without drafts; 7-post feed works | 4 | All passed |
-| Visit counts (analytics) | What is sent and when, campaign links, no cookies, Demo and research excluded, the Settings switch, Do Not Track, Global Privacy Control, a blocked counter, a build without a code | 36 | All passed |
-| Team visit report | Empty until a file is loaded, no internet connections, CSV, CSV.gz and JSON exports, wrong files, counts, days, sources, devices, countries, events, date ranges, PNG and CSV export, dark phone layout | 30 | All passed |
-| **Total** | | **397** | **0 failures** |
+| Visit counts (analytics) | What ScrollWise asks the counter to send, campaign links, no cookies, Demo and research excluded, the Settings switch, Do Not Track, Global Privacy Control, a blocked counter, a build without a code | 36 | All passed |
+| Visit counts with GoatCounter’s real script | GoatCounter’s own `count.js` on a simulated copy of the live address: the exact requests a visitor’s browser sends, one page view per page load, campaign and source names, nothing personal, reloads, referrers, research mode, the switch, Do Not Track, GPC, a blocked counter, automated browsers marked as bots | 33 | All passed |
+| Team analytics dashboard | Empty until a real export is loaded, no internet connections, JSON and CSV.gz exports, every total, every day (Asia/Amman), weeks, sources, choices, activities, devices, engagement, test visits left out, date ranges, % view, keyboard tooltips, five 1920 × 1080 images, chart images, CSV files with formulas neutralised, script sentences, dark phone layout | 45 | All passed |
+| **Total** | | **445** | **0 failures** |
 
-After the visit-count changes on 21 November, these suites were run again on the new build and all passed: end-to-end real feed (87), release QA (70), research mode (38), unseen-first sessions on the real feed (6), and the timer and layout audit (23) on a build with counting switched on and the counter unreachable. The 80-post simulated feed, the full-feed sessions and `build:final` were not re-run; the changes don’t touch the feed, sessions or the final build.
+After the changes on 21 November, these suites were run again on the new build and all passed: end-to-end real feed (87), release QA (70), research mode (38), unseen-first sessions on the real feed (6), and the timer and layout audit (23) on a build with counting switched on and the counter unreachable. The 80-post simulated feed, the full-feed sessions and `build:final` were not re-run; the changes don’t touch the feed, sessions or the final build.
 
 The tests were run again after every fix; the numbers above are from the final run.
 
@@ -68,20 +69,22 @@ The tests were run again after every fix; the numbers above are from the final r
 - CSV: correct file name, header plus one row per feed, 27 columns, commas and quotes escaped, formula-like comments neutralised. Copy CSV and Show CSV text work.
 
 ### Visit counts (analytics)
-These tests used a **stand-in for GoatCounter’s script** that records what would be sent; no real GoatCounter account was used.
+Two kinds of test, both without a real GoatCounter account. The first replaced GoatCounter’s script with a stand-in that records what ScrollWise asks it to send. The second used **GoatCounter’s own `count.js`** (from its open-source code) on a simulated copy of `https://taliakasissieh.github.io/scrollwise/`, and recorded the requests instead of sending them. Whether GoatCounter’s server then shows those visits can only be checked once the account exists.
 - With no site code (the current published state) the page has no counter, no Settings switch and no mention in the Privacy notice, and makes no request to GoatCounter.
-- With a code: one page view per visit, with the campaign from `?utm_campaign=poster-qr`; the campaign is then removed from the address bar; no cookies are set.
+- With a code: exactly one page view per page load, sent as a beacon with only the page, title, campaign, referrer, screen width, a bot flag and a random cache-buster. The campaign from `?utm_campaign=poster-qr` is also sent as its source so exports keep it, then removed from the address bar. No cookies are set.
+- Double counting: moving around the app sends no extra page views; a reload sends one more page view, which GoatCounter counts as the same visit (its documented 8-hour session rule); each stopping point is sent once. GoatCounter also counts each event at most once per visit.
+- Automated browsers are marked as bots by GoatCounter’s script, so test runs like these never reach the statistics.
 - Events for opening the feed, reaching a stopping point, each of the three choices, seeing activity suggestions, starting and completing an activity, the dashboard and About page. Only event names are sent, never post names, captions or saved data.
 - Demo Mode sends only “demo-started”; research mode sends nothing, not even a page view.
 - The Settings switch stops counting immediately and is remembered; Do Not Track and Global Privacy Control stop all counting.
 - If the counter can’t load, the feed, timer and stopping point work normally.
 
-### Team visit report
-Tested with **made-up test exports** (kept outside the project, never published).
-- Shows nothing until a file is chosen; its security policy blocks every internet connection.
-- Reads GoatCounter CSV, gzipped CSV and JSON (ZIP) exports; rejects other files with a clear message.
-- Counts only first page views of a visit, without bots; groups days in the viewer’s time zone; campaigns, sources, devices, countries and events match the test file.
-- Date ranges, chart images (PNG), the summary CSV and the dark phone layout work.
+### Team analytics dashboard
+Tested with **made-up test exports** (kept outside the project, never published), built to GoatCounter’s export format as written in its source code. The expected numbers came from the generator, not from the dashboard.
+- Shows no numbers at all until a file is chosen; its security policy blocks every internet connection; search engines are asked not to list it.
+- Reads GoatCounter JSON (ZIP) and gzipped CSV exports; rejects other files with a clear message.
+- Every total, every day in Asia/Amman time, weekly totals, sources (including a hostile campaign name shown as plain text), stopping-point choices, activities, devices and engagement match the test data; team test visits are left out; page loads are only shown for CSV exports.
+- Date presets and custom dates, daily/weekly, % of visits, keyboard tooltips, five 1920 × 1080 PNG images, chart images, CSV files (formula-like text neutralised), script sentences and the dark 375 px phone layout work.
 
 ### Accessibility and layout
 - Every control has an accessible name; every image has alt text.
@@ -101,7 +104,7 @@ Tested with **made-up test exports** (kept outside the project, never published)
 
 ## 4. Needs manual testing (not yet done)
 1. **The live GitHub Pages site** (published 20 November 2026) on the team’s own phones.
-2. **Live visit counts**, once the GoatCounter site code is set: a phone visit appears in the dashboard; a `?utm_campaign=poster-qr` visit appears under Campaigns; an export loads in the team report.
+2. **Live visit counts**, once the GoatCounter site code is set: a phone visit with `?utm_campaign=test-setup` appears in GoatCounter’s dashboard; a real JSON export loads in the team dashboard and its totals match GoatCounter’s.
 3. **Real iPhone (Safari)**: safe areas around the notch and bottom bar, swiping carousels, double-tap, adding a photo to a finished activity, Share CSV, Home Screen version.
 4. **Real Android phone** (Chrome, Samsung Internet).
 5. **iPad and Android tablets**, portrait and landscape.

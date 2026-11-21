@@ -6,199 +6,334 @@
 <meta name="robots" content="noindex, nofollow">
 <!-- Nothing on this page can be sent anywhere: the browser blocks every connection (connect-src 'none'). -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'none'; form-action 'none'">
-<title>ScrollWise · Team visit report</title>
+<title>ScrollWise · Team analytics</title>
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <style>
-/* ScrollWise team visit report.
-   Reads a GoatCounter export file (CSV, CSV.gz or JSON ZIP) in this browser and turns it into charts.
-   The file never leaves the device, and the page shows no numbers until a real export is loaded. */
+/* ScrollWise team analytics.
+   Reads a GoatCounter export (JSON ZIP, CSV or CSV.gz) in this browser and turns it into charts,
+   video-ready images and CSV files. The file never leaves the device: this page can't connect to
+   the internet, and it shows no numbers until a real export is loaded. */
 @font-face { font-family: 'Bricolage Local'; src: url('../assets/fonts/bricolage-grotesque-bold.woff') format('woff'); font-weight: 700; font-display: swap; }
 :root {
   color-scheme: light;
-  --bg: #f3f5fb; --surface: #ffffff; --surface-2: #eceff8; --line: #dde2f0; --grid: #e7eaf3;
+  --bg: #f3f5fb; --surface: #ffffff; --surface-2: #eceff8; --line: #dde2ef; --grid: #e7eaf3;
   --ink: #0b1433; --ink-2: #465074; --ink-3: #5f6889;
-  --blue: #2b59ff; --blue-soft: #e8edff; --muted-bar: #b9c1d8;
-  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a;
-  --focus: #2b59ff;
+  --blue: #2b59ff; --blue-ink: #1d45e0; --blue-soft: #e5ebff;
+  --green: #0e9f6e; --green-ink: #087a51; --green-soft: #dbf6ea; --mint: #2fd69b;
+  --orange: #e0682c; --muted-bar: #a7b0cc;
+  --night: #0a1230; --night-2: #131d47; --on-night: #f2f4ff; --on-night-2: #b4bcdf;
+  --shadow: 0 1px 2px rgba(11,20,51,.05), 0 8px 24px rgba(11,20,51,.07);
 }
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
-    --bg: #060a1a; --surface: #0d1430; --surface-2: #151e42; --line: #243063; --grid: #1c2650;
+    --bg: #060a1a; --surface: #0d1430; --surface-2: #151e42; --line: #232d55; --grid: #1a2450;
     --ink: #eef1fb; --ink-2: #b0b8d4; --ink-3: #8f98bb;
-    --blue: #5b7cff; --blue-soft: #1a2558; --muted-bar: #48527d;
-    --s1: #3987e5; --s2: #d95926; --s3: #199e70;
+    --blue: #5b7cff; --blue-ink: #92a6ff; --blue-soft: #18224f;
+    --green: #1aa874; --green-ink: #5cebb7; --green-soft: #0f2f2b;
+    --orange: #d95926; --muted-bar: #46507d;
+    --night: #0b1438; --night-2: #18245a;
+    --shadow: 0 1px 2px rgba(0,0,0,.35), 0 10px 30px rgba(0,0,0,.35);
   }
 }
 * { box-sizing: border-box; min-width: 0; }
 [hidden] { display: none !important; }
 body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
-.wrap { max-width: 1120px; margin: 0 auto; padding: 24px max(16px, 4vw) 64px; }
-header.top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
-.brand { display: flex; align-items: center; gap: 10px; font-weight: 650; font-size: 18px; color: var(--ink); text-decoration: none; }
-.brand b { color: var(--blue); }
-h1 { font: 700 clamp(28px, 4.4vw, 40px)/1.08 'Bricolage Local', system-ui, sans-serif; margin: 0 0 6px; letter-spacing: -0.01em; text-wrap: balance; }
-h2 { font: 650 18px/1.3 system-ui, sans-serif; margin: 0; }
+.wrap { max-width: 1160px; margin: 0 auto; padding: 0 max(16px, 4vw); }
+h1, h2, h3 { margin: 0; }
+h1 { font: 700 clamp(30px, 5vw, 46px)/1.05 'Bricolage Local', system-ui, sans-serif; letter-spacing: -0.015em; text-wrap: balance; }
+h2 { font: 650 19px/1.3 system-ui, sans-serif; }
+h3 { font: 650 16px/1.3 system-ui, sans-serif; }
 p { margin: 0 0 8px; }
-.lead { color: var(--ink-2); max-width: 70ch; }
 .small { font-size: 13.5px; color: var(--ink-3); }
-.card { background: var(--surface); border-radius: 18px; padding: 18px 20px; box-shadow: 0 1px 2px rgba(11,20,51,.05), 0 6px 24px rgba(11,20,51,.05); }
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); font: 600 15px system-ui, sans-serif; cursor: pointer; text-decoration: none; }
+
+/* navy header */
+.hero { background: radial-gradient(900px 360px at 85% -10%, rgba(43,89,255,.45), transparent 70%), var(--night); color: var(--on-night); padding: 22px 0 30px; }
+.hero .row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 26px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 650; font-size: 18px; color: var(--on-night); text-decoration: none; }
+.brand b { color: #7b97ff; font-weight: 650; }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,.08); color: var(--on-night-2); font-size: 13px; font-weight: 600; }
+.pill i { width: 8px; height: 8px; border-radius: 50%; background: var(--mint); }
+.hero .lead { color: var(--on-night-2); max-width: 66ch; margin-top: 10px; }
+.hero .btn { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.22); color: var(--on-night); }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); font: 600 15px system-ui, sans-serif; cursor: pointer; text-decoration: none; white-space: nowrap; }
 .btn-primary { background: var(--blue); border-color: var(--blue); color: #fff; }
-.btn-sm { min-height: 36px; padding: 0 14px; font-size: 14px; }
-.btn:focus-visible, select:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.btn-sm { min-height: 36px; padding: 0 13px; font-size: 13.5px; }
+.btn[disabled] { opacity: .45; cursor: not-allowed; }
+.btn:focus-visible, input:focus-visible, summary:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+main { padding: 22px 0 70px; }
+.card { background: var(--surface); border-radius: 22px; padding: 20px 22px; box-shadow: var(--shadow); }
+
 /* empty state */
-.drop { display: grid; gap: 14px; justify-items: start; padding: 28px; border: 2px dashed var(--line); border-radius: 20px; background: var(--surface); }
+.drop { display: grid; gap: 14px; justify-items: start; padding: 30px; border: 2px dashed var(--line); border-radius: 22px; background: var(--surface); }
 .drop.is-over { border-color: var(--blue); background: var(--blue-soft); }
-.drop ol { margin: 0; padding-left: 20px; color: var(--ink-2); }
-.drop li { margin-bottom: 4px; }
+.drop ol { margin: 0; padding-left: 22px; color: var(--ink-2); }
+.drop li { margin-bottom: 6px; }
+.empty-note { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 14px; background: var(--green-soft); color: var(--ink); font-size: 14.5px; }
 .error { color: #c0322f; font-weight: 600; }
 @media (prefers-color-scheme: dark) { .error { color: #ff8a8a; } }
-/* filters */
-.filters { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 6px 0 16px; }
+
+/* toolbar */
+.toolbar { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 10px 0; margin-bottom: 8px; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(8px); }
 .seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--surface-2); }
-.seg button { min-height: 38px; padding: 0 14px; border: 0; border-radius: 999px; background: transparent; color: var(--ink-2); font: 600 14px system-ui, sans-serif; cursor: pointer; }
-.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(11,20,51,.12); }
-.dates { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); font-size: 14px; }
+.seg button { min-height: 36px; padding: 0 13px; border: 0; border-radius: 999px; background: transparent; color: var(--ink-2); font: 600 14px system-ui, sans-serif; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(11,20,51,.14); }
+.dates { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; color: var(--ink-2); font-size: 14px; }
 .dates input { min-height: 38px; padding: 4px 8px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink); font: 15px system-ui, sans-serif; }
+
 /* tiles */
-.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
-.tile .l { font-size: 13.5px; color: var(--ink-2); margin-bottom: 4px; }
-.tile .v { font-size: 30px; font-weight: 650; line-height: 1.1; }
-.tile.hero .v { font-size: 48px; }
-.tile .d { font-size: 12.5px; color: var(--ink-3); margin-top: 6px; }
+.tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 12px; }
+.tile { display: grid; align-content: start; gap: 2px; }
+.tile .l { font-size: 14px; color: var(--ink-2); font-weight: 600; }
+.tile .v { font: 700 34px/1.1 'Bricolage Local', system-ui, sans-serif; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+.tile .d { font-size: 12.5px; color: var(--ink-3); }
+.tile.hero-tile { background: linear-gradient(135deg, var(--blue), #1d3fd0); color: #fff; }
+.tile.hero-tile .l, .tile.hero-tile .d { color: rgba(255,255,255,.86); }
+.tile.hero-tile .v { font-size: 44px; }
+.tile .bar { height: 4px; border-radius: 4px; margin-bottom: 8px; width: 36px; }
+
 .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 12px; }
 .full { margin-bottom: 12px; }
-.chart-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
-.chart-sub { font-size: 13.5px; color: var(--ink-3); margin: 2px 0 10px; }
+.chart-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.chart-head .btns { display: flex; gap: 6px; flex-wrap: wrap; }
+.measures { font-size: 13.5px; color: var(--ink-3); margin: 4px 0 12px; max-width: 75ch; }
 .fig { position: relative; width: 100%; }
-.fig svg { display: block; width: 100%; height: 100%; overflow: visible; }
-.tip { position: fixed; z-index: 10; pointer-events: none; padding: 8px 10px; border-radius: 10px; background: var(--ink); color: var(--bg); font-size: 13px; line-height: 1.35; box-shadow: 0 6px 20px rgba(0,0,0,.2); opacity: 0; transition: opacity .1s; }
-.tip b { display: block; font-size: 15px; }
-.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 10px; font-size: 13.5px; color: var(--ink-2); }
-.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.fig svg { display: block; width: 100%; height: auto; overflow: visible; }
+.fig .none { display: grid; place-items: center; min-height: 120px; padding: 16px; border-radius: 14px; background: var(--surface-2); color: var(--ink-3); font-size: 14px; text-align: center; }
+.tip { position: fixed; z-index: 20; pointer-events: none; min-width: 120px; padding: 9px 11px; border-radius: 12px; background: var(--ink); color: var(--bg); font-size: 13px; line-height: 1.4; box-shadow: 0 8px 24px rgba(0,0,0,.22); opacity: 0; transition: opacity .1s; }
+.tip b { display: block; font-size: 13.5px; margin-bottom: 2px; }
+.tip span { display: flex; align-items: center; gap: 6px; }
+.tip i { width: 9px; height: 9px; border-radius: 3px; flex: none; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 10px; font-size: 13.5px; color: var(--ink-2); }
+.legend span { display: inline-flex; align-items: center; gap: 7px; }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; }
+.legend i.dash { height: 0; border-top: 2px dashed var(--ink-3); border-radius: 0; width: 16px; }
 details.tbl { margin-top: 10px; }
 details.tbl summary { cursor: pointer; font-size: 13.5px; color: var(--ink-2); min-height: 28px; }
 table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 6px; }
 th, td { text-align: left; padding: 6px 4px; border-bottom: 1px solid var(--line); }
 td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
-.note { margin-top: 10px; padding: 12px 14px; border-radius: 12px; background: var(--blue-soft); font-size: 14px; color: var(--ink); }
-.honest { margin-top: 18px; }
-.honest ul { margin: 6px 0 0; padding-left: 20px; color: var(--ink-2); }
-.bar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-@media (max-width: 860px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } .grid2 { grid-template-columns: minmax(0, 1fr); } }
-@media (max-width: 420px) { .tile.hero .v { font-size: 40px; } }
-@media print { body { background: #fff; } .filters, .bar-actions, .save, details.tbl summary, #again { display: none !important; } .card { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; } }
+.note { margin-top: 12px; padding: 11px 14px; border-radius: 12px; background: var(--blue-soft); font-size: 14px; color: var(--ink); }
+.note.green { background: var(--green-soft); }
+.mini { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 2px 0 12px; }
+.mini div { font-size: 13.5px; color: var(--ink-2); }
+.mini b { display: block; font: 700 24px/1.15 'Bricolage Local', system-ui, sans-serif; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+/* competition section */
+.comp { margin-top: 28px; background: var(--night); color: var(--on-night); border-radius: 26px; padding: 26px clamp(18px, 3vw, 32px) 30px; }
+.comp h2 { font: 700 clamp(24px, 3.2vw, 32px)/1.1 'Bricolage Local', system-ui, sans-serif; }
+.comp .lead { color: var(--on-night-2); max-width: 70ch; margin: 8px 0 18px; }
+.comp h3 { margin: 22px 0 10px; color: var(--on-night); }
+.gloss { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.gloss article { background: var(--night-2); border-radius: 18px; padding: 16px 18px; }
+.gloss h4 { margin: 0 0 8px; font: 650 15.5px/1.3 system-ui, sans-serif; color: #fff; }
+.gloss dl { margin: 0; display: grid; gap: 8px; }
+.gloss dt { font-weight: 650; font-size: 14px; color: #9db1ff; }
+.gloss dd { margin: 0; font-size: 14px; color: var(--on-night-2); }
+.slides { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.slide { background: var(--night-2); border-radius: 16px; padding: 10px; display: grid; gap: 8px; align-content: start; }
+.slide .pv { aspect-ratio: 16 / 9; border-radius: 10px; overflow: hidden; background: #060a1a; display: grid; place-items: center; color: var(--on-night-2); font-size: 13px; text-align: center; padding: 0; }
+.slide .pv img { width: 100%; height: 100%; display: block; }
+.slide .pv p { margin: 0; padding: 12px; }
+.slide .t { font-weight: 650; font-size: 14.5px; padding: 0 4px; }
+.slide .btn { background: var(--blue); border-color: var(--blue); color: #fff; justify-self: start; }
+.lines { display: grid; gap: 8px; }
+.line { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; background: var(--night-2); border-radius: 14px; padding: 12px 14px; }
+.line p { margin: 0; color: var(--on-night); font-size: 15px; }
+.line .btn { background: transparent; border-color: rgba(255,255,255,.25); color: var(--on-night); }
+.dl { display: flex; flex-wrap: wrap; gap: 8px; }
+.dl .btn { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.22); color: var(--on-night); }
+
+.honest { margin-top: 12px; }
+.honest ul { margin: 8px 0 0; padding-left: 20px; color: var(--ink-2); }
+.honest li { margin-bottom: 4px; }
+.datanotes { margin: 14px 0 0; padding-left: 20px; font-size: 13.5px; color: var(--ink-3); }
+
+@media (max-width: 900px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } .grid2, .gloss { grid-template-columns: minmax(0, 1fr); } .slides { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .slides { grid-template-columns: minmax(0, 1fr); } .tile .v { font-size: 30px; } .tile.hero-tile .v { font-size: 38px; } .line { flex-direction: column; } .card { padding: 18px 16px; } }
+@media print { body { background: #fff; } .toolbar, .actions, .btns, .comp, details.tbl summary { display: none !important; } .card { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; } .hero { background: #0a1230 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
 @media (prefers-reduced-motion: reduce) { .tip { transition: none; } }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header class="top">
-    <a class="brand" href="../"><svg viewBox="0 0 40 40" width="30" height="30" aria-hidden="true"><rect width="40" height="40" rx="12" fill="#0B1433"/><path d="M11.5 29.5c5 2.2 15.5 1.6 15.5-4.4 0-6.4-14-3.4-14-9.6 0-4.4 5.2-5.6 9.4-4.6" fill="none" stroke="#5B7CFF" stroke-width="3.6" stroke-linecap="round"/><circle cx="28.6" cy="11.4" r="3.5" fill="#3EE3A6"/></svg><span>scroll<b>wise</b></span></a>
-    <div class="bar-actions" id="actions" hidden>
+<header class="hero">
+  <div class="wrap">
+    <div class="row">
+      <a class="brand" href="../"><svg viewBox="0 0 40 40" width="32" height="32" aria-hidden="true"><rect width="40" height="40" rx="12" fill="#131D47"/><path d="M11.5 29.5c5 2.2 15.5 1.6 15.5-4.4 0-6.4-14-3.4-14-9.6 0-4.4 5.2-5.6 9.4-4.6" fill="none" stroke="#5B7CFF" stroke-width="3.6" stroke-linecap="round"/><circle cx="28.6" cy="11.4" r="3.5" fill="#3EE3A6"/></svg><span>scroll<b>wise</b></span></a>
+      <span class="pill"><i></i>Team analytics · private to this browser</span>
+    </div>
+    <h1>How people use ScrollWise</h1>
+    <p class="lead">Real, anonymous statistics from your GoatCounter export. The file is read only on this device: nothing is uploaded, and this page can’t connect to the internet.</p>
+    <div class="actions" id="actions" hidden style="margin-top:16px">
       <button type="button" class="btn btn-sm" id="dl-summary">Download summary (CSV)</button>
       <button type="button" class="btn btn-sm" onclick="window.print()">Print or save as PDF</button>
       <button type="button" class="btn btn-sm" id="again">Load another file</button>
     </div>
-  </header>
+  </div>
+</header>
 
-  <h1 id="title">Team visit report</h1>
-  <p class="lead" id="lead">Real visitor numbers for ScrollWise, from your GoatCounter export. The file is read only in this browser: nothing is uploaded, and this page can’t connect to the internet.</p>
-
-  <!-- empty state: shown until a real export is loaded -->
+<main class="wrap">
+  <!-- Empty state: shown until a real export is loaded. -->
   <section id="empty" class="drop" aria-labelledby="empty-h">
     <h2 id="empty-h">Load your GoatCounter export</h2>
     <ol>
-      <li>Sign in to your GoatCounter dashboard and open <b>Settings → Export</b>.</li>
-      <li>Start an export and download the file when it’s ready (JSON ZIP, or CSV if “Individual pageviews” is switched on).</li>
-      <li>Choose the file below, or drop it here.</li>
+      <li>Sign in at your GoatCounter address (for example <b>scrollwise.goatcounter.com</b>).</li>
+      <li>Open <b>Settings → Export/Import</b>, then under <b>Export to JSON</b> choose <b>Start export</b>.</li>
+      <li>When it’s ready (usually within a minute; GoatCounter also emails you), download it from <b>Last 10 exports</b>.</li>
+      <li>Choose the downloaded file below, or drop it here. CSV exports also work.</li>
     </ol>
     <label class="btn btn-primary" for="file">Choose export file</label>
     <input id="file" type="file" accept=".zip,.csv,.gz,application/zip,text/csv" hidden>
-    <p class="small">No sample numbers are ever shown here: until you load a real export, there is nothing to report.</p>
+    <p class="empty-note"><span aria-hidden="true">●</span><span>There are no example or sample numbers on this page. Until you load a real export, there is nothing to show.</span></p>
     <p class="error" id="err" role="alert" hidden></p>
   </section>
 
-  <main id="report" hidden>
-    <div class="filters" role="group" aria-label="Date range">
-      <div class="seg" id="presets">
-        <button type="button" data-p="all" aria-pressed="true">All</button>
+  <div id="report" hidden>
+    <div class="toolbar" role="group" aria-label="Filters">
+      <div class="seg" id="presets" role="group" aria-label="Date range">
+        <button type="button" data-p="all" aria-pressed="true">All dates</button>
         <button type="button" data-p="7" aria-pressed="false">Last 7 days</button>
         <button type="button" data-p="30" aria-pressed="false">Last 30 days</button>
       </div>
       <span class="dates"><label for="from">From</label><input type="date" id="from"><label for="to">to</label><input type="date" id="to"></span>
+      <div class="seg" id="gran" role="group" aria-label="Group by">
+        <button type="button" data-g="day" aria-pressed="true">Daily</button>
+        <button type="button" data-g="week" aria-pressed="false">Weekly</button>
+      </div>
     </div>
 
     <section class="tiles" aria-label="Totals">
-      <div class="card tile hero"><p class="l">Visits</p><p class="v" id="t-visits">–</p><p class="d" id="t-visits-d"></p></div>
-      <div class="card tile"><p class="l">Visits from campaign links</p><p class="v" id="t-camp">–</p><p class="d">e.g. a poster QR code with ?utm_campaign=…</p></div>
-      <div class="card tile"><p class="l">Reached a stopping point</p><p class="v" id="t-stop">–</p><p class="d">visitors, counted once per visit</p></div>
-      <div class="card tile"><p class="l">Completed an offline activity</p><p class="v" id="t-act">–</p><p class="d">visitors, counted once per visit</p></div>
+      <div class="card tile hero-tile"><p class="l">Website visits</p><p class="v" id="t-visits">–</p><p class="d" id="t-visits-d"></p></div>
+      <div class="card tile"><span class="bar" style="background:var(--blue)"></span><p class="l">Visits from QR codes</p><p class="v" id="t-qr">–</p><p class="d" id="t-qr-d">tracked campaign links only</p></div>
+      <div class="card tile"><span class="bar" style="background:var(--muted-bar)"></span><p class="l">Opened the feed</p><p class="v" id="t-feed">–</p><p class="d">visits where this happened</p></div>
+      <div class="card tile"><span class="bar" style="background:var(--blue)"></span><p class="l">Reached a stopping point</p><p class="v" id="t-stop">–</p><p class="d">visits where this happened</p></div>
+      <div class="card tile"><span class="bar" style="background:var(--green)"></span><p class="l">Started an offline activity</p><p class="v" id="t-start">–</p><p class="d">visits where this happened</p></div>
+      <div class="card tile"><span class="bar" style="background:var(--green)"></span><p class="l">Completed an offline activity</p><p class="v" id="t-done">–</p><p class="d">visits where this happened</p></div>
     </section>
 
-    <section class="card full" id="c-daily" aria-labelledby="h-daily">
-      <div class="chart-head"><h2 id="h-daily">Visits per day</h2><button type="button" class="btn btn-sm save" data-chart="daily">Save as image</button></div>
-      <p class="chart-sub" id="s-daily"></p>
-      <div class="fig" id="f-daily" style="height:280px"></div>
-      <details class="tbl"><summary>Show as a table</summary><table id="tb-daily"></table></details>
+    <section class="card full" id="c-visits" aria-labelledby="h-visits">
+      <div class="chart-head"><h2 id="h-visits">Visits over time</h2><div class="btns"><button type="button" class="btn btn-sm save" data-chart="visits">Save image</button><button type="button" class="btn btn-sm csv" data-chart="visits">CSV</button></div></div>
+      <p class="measures" id="m-visits"></p>
+      <div class="fig" id="f-visits"></div>
+      <div class="legend" id="lg-visits"></div>
+      <details class="tbl"><summary>Show as a table</summary><table id="tb-visits"></table></details>
     </section>
 
     <div class="grid2">
       <section class="card" id="c-source" aria-labelledby="h-source">
-        <div class="chart-head"><h2 id="h-source">Where visits came from</h2><button type="button" class="btn btn-sm save" data-chart="source">Save as image</button></div>
-        <p class="chart-sub">Campaign links in blue. “Direct” has no referrer: QR codes without a campaign link, typed addresses, bookmarks and some apps.</p>
+        <div class="chart-head"><h2 id="h-source">Where visits came from</h2><div class="btns"><button type="button" class="btn btn-sm save" data-chart="source">Save image</button><button type="button" class="btn btn-sm csv" data-chart="source">CSV</button></div></div>
+        <p class="measures">Blue: tracked campaign links (QR codes and other links with <b>?utm_campaign=</b>). Grey: everything else. “Direct” means no referrer: scans of QR codes without a campaign link, typed addresses, bookmarks and some apps.</p>
         <div class="fig" id="f-source"></div>
+        <div class="legend"><span><i style="background:var(--blue)"></i>Tracked campaign link</span><span><i style="background:var(--muted-bar)"></i>Not tracked</span></div>
         <details class="tbl"><summary>Show as a table</summary><table id="tb-source"></table></details>
       </section>
-      <section class="card" id="c-device" aria-labelledby="h-device">
-        <div class="chart-head"><h2 id="h-device">Devices</h2><button type="button" class="btn btn-sm save" data-chart="device">Save as image</button></div>
-        <p class="chart-sub">By screen width: phones under 600 px, tablets 600–1023 px, computers 1024 px and wider.</p>
-        <div class="fig" id="f-device" style="height:56px"></div>
-        <div class="legend" id="lg-device"></div>
-        <details class="tbl"><summary>Show as a table</summary><table id="tb-device"></table></details>
-        <h2 style="margin-top:18px">Top countries</h2>
-        <div class="fig" id="f-country" style="margin-top:8px"></div>
-        <details class="tbl"><summary>Show as a table</summary><table id="tb-country"></table></details>
+      <section class="card" id="c-stop" aria-labelledby="h-stop">
+        <div class="chart-head"><h2 id="h-stop">The stopping point</h2><div class="btns"><button type="button" class="btn btn-sm save" data-chart="stop">Save image</button><button type="button" class="btn btn-sm csv" data-chart="stop">CSV</button></div></div>
+        <p class="measures">What happened when ScrollWise paused the feed. Each count is the number of visits where it happened at least once.</p>
+        <div class="mini" id="mini-stop"></div>
+        <div class="fig" id="f-stop"></div>
+        <div class="legend"><span><i style="background:var(--green)"></i>Stepped away</span><span><i style="background:var(--blue)"></i>Kept scrolling, on purpose</span></div>
+        <p class="note" id="n-stop" hidden></p>
+        <details class="tbl"><summary>Show as a table</summary><table id="tb-stop"></table></details>
       </section>
     </div>
 
     <div class="grid2">
-      <section class="card" id="c-stop" aria-labelledby="h-stop">
-        <div class="chart-head"><h2 id="h-stop">The stopping point</h2><button type="button" class="btn btn-sm save" data-chart="stop">Save as image</button></div>
-        <p class="chart-sub">Visitors who did each thing at least once during a visit.</p>
-        <div class="fig" id="f-stop"></div>
-        <p class="note" id="n-stop" hidden></p>
-        <details class="tbl"><summary>Show as a table</summary><table id="tb-stop"></table></details>
-      </section>
       <section class="card" id="c-act" aria-labelledby="h-act">
-        <div class="chart-head"><h2 id="h-act">Offline activities</h2><button type="button" class="btn btn-sm save" data-chart="act">Save as image</button></div>
-        <p class="chart-sub">Visitors who did each thing at least once during a visit.</p>
+        <div class="chart-head"><h2 id="h-act">Offline activities</h2><div class="btns"><button type="button" class="btn btn-sm save" data-chart="act">Save image</button><button type="button" class="btn btn-sm csv" data-chart="act">CSV</button></div></div>
+        <p class="measures">From suggestion to a finished activity. “Completed” means someone tapped Done in ScrollWise; what they actually did offline can’t be seen.</p>
         <div class="fig" id="f-act"></div>
-        <p class="note" id="n-act" hidden></p>
+        <p class="note green" id="n-act" hidden></p>
         <details class="tbl"><summary>Show as a table</summary><table id="tb-act"></table></details>
+      </section>
+      <section class="card" id="c-device" aria-labelledby="h-device">
+        <div class="chart-head"><h2 id="h-device">Devices and countries</h2><div class="btns"><button type="button" class="btn btn-sm save" data-chart="device">Save image</button><button type="button" class="btn btn-sm csv" data-chart="device">CSV</button></div></div>
+        <p class="measures">Devices by screen width: phones under 600 px, tablets 600–1023 px, computers 1024 px and wider. Countries as GoatCounter estimates them.</p>
+        <div class="fig" id="f-device"></div>
+        <div class="legend" id="lg-device"></div>
+        <h3 style="margin:18px 0 8px">Top countries</h3>
+        <div class="fig" id="f-country"></div>
+        <details class="tbl"><summary>Show as a table</summary><table id="tb-device"></table></details>
       </section>
     </div>
 
-    <section class="card honest" aria-labelledby="h-honest">
-      <h2 id="h-honest">Reporting these numbers honestly</h2>
-      <ul>
-        <li>Say where the numbers come from and the dates: “GoatCounter, cookieless, <span id="range-text">…</span>”.</li>
-        <li>“Visits” are GoatCounter’s unique visits: one person on one device counts once in a session of up to 8 hours. They are not the number of different people.</li>
-        <li>Only visits from links with <b>?utm_campaign=…</b> can be called poster or QR visits. “Direct” visits can’t be split into QR scans and other visits.</li>
-        <li>Team devices should have counting turned off (Settings → About and privacy) so tests don’t count.</li>
-        <li>Visitors who turned counting off, use Do Not Track, or block the counter aren’t included, so real numbers can be a little higher.</li>
-        <li>Check the totals against the GoatCounter dashboard before using them in the video.</li>
-      </ul>
-      <p class="small" id="src-text" style="margin-top:10px"></p>
+    <section class="card full" id="c-trend" aria-labelledby="h-trend">
+      <div class="chart-head"><h2 id="h-trend">Engagement over time</h2>
+        <div class="btns">
+          <div class="seg" id="tmode" role="group" aria-label="Show"><button type="button" data-m="count" aria-pressed="true">Counts</button><button type="button" data-m="pct" aria-pressed="false">% of visits</button></div>
+          <button type="button" class="btn btn-sm save" data-chart="trend">Save image</button><button type="button" class="btn btn-sm csv" data-chart="trend">CSV</button>
+        </div>
+      </div>
+      <p class="measures" id="m-trend"></p>
+      <div class="fig" id="f-trend"></div>
+      <div class="legend" id="lg-trend"></div>
+      <details class="tbl"><summary>Show as a table</summary><table id="tb-trend"></table></details>
     </section>
-  </main>
-</div>
+
+    <section class="card honest" aria-labelledby="h-notes">
+      <h2 id="h-notes">About this data</h2>
+      <ul class="datanotes" id="datanotes"></ul>
+    </section>
+
+    <!-- Competition reporting -->
+    <section class="comp" id="comp" aria-labelledby="h-comp">
+      <h2 id="h-comp">For the competition video</h2>
+      <p class="lead">Video-ready images (1920 × 1080), sentences you can read out, and the exact meaning of each number. Everything uses the dates chosen above.</p>
+
+      <h3>What the numbers mean (and don’t)</h3>
+      <div class="gloss">
+        <article><h4>Visits, not people</h4><dl>
+          <dt>Website visits</dt><dd>One device opening ScrollWise, in a session of up to 8 hours. Reloading the page doesn’t add a visit.</dd>
+          <dt>Unique visitors</dt><dd>Not measured. Counting different people would need personal identifiers, which ScrollWise deliberately avoids. The same person on two days counts as two visits.</dd>
+          <dt id="g-loads">Page loads</dt><dd id="g-loads-d">Every time the page loaded, including reloads. Only CSV exports include this.</dd>
+        </dl></article>
+        <article><h4>QR visits vs direct visits</h4><dl>
+          <dt>QR code visits</dt><dd>Visits from campaign links with “qr” in their name, such as <b>?utm_campaign=poster-qr</b>. Only these can be called QR or poster visits.</dd>
+          <dt>Direct visits</dt><dd>Visits with no referrer. They include scans of QR codes without a campaign link, but also typed addresses, bookmarks and some apps, so they can’t be called QR scans.</dd>
+        </dl></article>
+        <article><h4>Engagement vs proven impact</h4><dl>
+          <dt>Engagement</dt><dd>What people did in ScrollWise: reaching a stopping point, choosing to step away, finishing an activity.</dd>
+          <dt>Proven improvement</dt><dd>Not shown here. These numbers don’t prove that anyone’s well-being improved. That needs a study, such as your research mode results.</dd>
+        </dl></article>
+      </div>
+
+      <h3>Video-ready images</h3>
+      <div class="slides" id="slides"></div>
+
+      <h3>Sentences for the script</h3>
+      <div class="lines" id="script"></div>
+
+      <h3>Downloads</h3>
+      <div class="dl">
+        <button type="button" class="btn btn-sm" id="dl-summary-2">Summary with explanations (CSV)</button>
+        <button type="button" class="btn btn-sm" id="dl-days">Daily numbers (CSV)</button>
+        <button type="button" class="btn btn-sm" id="dl-weeks">Weekly numbers (CSV)</button>
+      </div>
+    </section>
+
+    <section class="card honest" aria-labelledby="h-honest" style="margin-top:12px">
+      <h2 id="h-honest">Using these numbers honestly</h2>
+      <ul>
+        <li>Name the source and dates: “GoatCounter, cookieless, <span id="range-text">…</span>”.</li>
+        <li>Say “visits”, not “people” or “users”.</li>
+        <li>Call only tracked campaign-link visits “QR” or “poster” visits.</li>
+        <li>Present engagement as how ScrollWise was used, not as proof that it improves well-being.</li>
+        <li>The numbers are more likely to be a little low than too high: visitors who switched counting off, use Do Not Track, or block the counter aren’t included, and people sharing a network and an identical phone within 8 hours can count as one visit. Team testing is the main thing that could inflate them.</li>
+        <li>Switch counting off on team devices, and check the totals against the GoatCounter dashboard before recording.</li>
+      </ul>
+    </section>
+  </div>
+</main>
 <div class="tip" id="tip" role="status" aria-live="polite"></div>
 
 <script>
 {
-  /* ---------------- reading the export ---------------- */
+  /* =========================================================================================
+     1. Reading the export
+     ========================================================================================= */
   const EVENTS = {
     'view-feed': 'Opened the feed',
     'stopping-point-reached': 'Reached a stopping point',
@@ -213,12 +348,17 @@ td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
     'view-about': 'Opened the About page',
     'demo-started': 'Started Demo Mode',
   };
-  const STOP_ORDER = ['view-feed', 'stopping-point-reached', 'choice-done', 'choice-moment', 'choice-continue'];
-  const ACT_ORDER = ['view-moments', 'moment-suggestions-shown', 'activity-started', 'activity-completed'];
+  const isQR = (name) => /qr/i.test(name || '');           // campaign names with "qr" are QR codes
+  const isTest = (name) => /^test/i.test(name || '');      // campaign names starting with "test" are team tests
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => Math.round(n).toLocaleString('en-GB');
+  const pct = (a, b) => (b ? Math.round((a / b) * 100) : 0);
   const TZ = (() => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone; } catch (e) { return 'local time'; } })();
   const localDay = (iso) => { const d = new Date(iso); if (isNaN(d)) return null; return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+  const noon = (day) => new Date(`${day}T12:00:00`);
+  const short = (day) => noon(day).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  const long = (day) => noon(day).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  const clip = (s, n = 40) => { s = String(s || ''); return s.length > n ? `${s.slice(0, n - 1)}…` : s; };
 
   function parseCSV(text) {
     const rows = []; let row = []; let cur = ''; let q = false;
@@ -240,7 +380,7 @@ td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
     return new Uint8Array(await new Response(stream).arrayBuffer());
   }
 
-  // Minimal ZIP reader (stored and deflated entries), enough for GoatCounter's JSON export.
+  // Minimal ZIP reader (stored and deflated entries): enough for GoatCounter's JSON export.
   async function readZip(buf) {
     const dv = new DataView(buf);
     let eocd = -1;
@@ -267,9 +407,11 @@ td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
 
   const jsonl = (bytes) => (bytes ? new TextDecoder().decode(bytes).split(/\r?\n/).filter((l) => l.trim()).map((l) => JSON.parse(l)) : []);
 
+  // A visit's source. GoatCounter marks campaign links with scheme "c"; ScrollWise copies the campaign
+  // name into utm_source so the export keeps it.
   function refOf(ref, scheme) {
     const r = (ref || '').trim();
-    if (scheme === 'c') return { type: 'campaign', label: r || 'campaign' };
+    if (scheme === 'c') return { type: 'campaign', label: r || 'campaign link (name not in export)', qr: isQR(r), test: isTest(r) };
     if (!r) return { type: 'direct', label: 'Direct (no referrer)' };
     if (scheme === 'h') return { type: 'site', label: r.replace(/^https?:\/\//, '').split('/')[0] };
     return { type: 'other', label: r };
@@ -282,7 +424,7 @@ td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
     const paths = new Map(jsonl(files['paths.jsonl']).map((x) => [x.id, x]));
     const refs = new Map(jsonl(files['refs.jsonl']).map((x) => [x.id, x]));
     const visits = [], events = [];
-    for (const h of jsonl(files['hit_stats.jsonl'])) {
+    for (const h of jsonl(files['hit_stats.jsonl'])) {   // GoatCounter counts only first visits here
       const path = paths.get(h.path_id); if (!path) continue;
       const day = localDay(h.hour); if (!day) continue;
       if (path.event) events.push({ day, name: path.path, count: h.count });
@@ -291,34 +433,37 @@ td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
     const pageIds = new Set([...paths.values()].filter((x) => !x.event).map((x) => x.id));
     const sizes = jsonl(files['size_stats.jsonl']).filter((x) => pageIds.has(x.path_id)).map((x) => ({ day: x.day, width: x.width, count: x.count }));
     const locations = jsonl(files['location_stats.jsonl']).filter((x) => pageIds.has(x.path_id)).map((x) => ({ day: x.day, country: String(x.location || '').split('-')[0], count: x.count }));
-    return { visits, events, sizes, locations, source: `GoatCounter JSON export${info.created_at ? ` created ${new Date(info.created_at).toLocaleString('en-GB')}` : ''}${info.export_version ? ` (format ${info.export_version})` : ''}` };
+    const created = info.created_at ? new Date(info.created_at) : null;
+    return { kind: 'json', visits, events, sizes, locations, loads: null, created, source: `GoatCounter JSON export${created && !isNaN(created) ? `, created ${created.toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })}` : ''}` };
   }
 
   function fromCSV(text) {
     const rows = parseCSV(text.replace(/^﻿/, ''));
     if (rows.length < 1) throw new Error('The CSV file is empty.');
-    let head = rows[0].map((h) => h.trim());
+    const head = rows[0].map((h) => h.trim());
     let version = '';
     const m = head[0].match(/^(\d+)(.*)$/);
-    if (m) { version = m[1]; head[0] = m[2] || 'Path'; }
+    if (m) { version = m[1]; head[0] = m[2].replace(/^,/, '') || 'Path'; }
     const col = (name) => head.findIndex((h) => h.toLowerCase() === name.toLowerCase());
     const need = ['Path', 'Event', 'Bot', 'Referrer', 'Referrer scheme', 'FirstVisit', 'Date'];
     const miss = need.filter((n) => col(n) < 0);
     if (miss.length) throw new Error(`This CSV isn’t a GoatCounter export (missing columns: ${miss.join(', ')}).`);
-    if (version && version !== '2') throw new Error(`This export uses format ${version}; this report reads format 2. Please use the JSON export instead.`);
+    if (version && version !== '2') throw new Error(`This export uses format ${version}; this page reads format 2. Please use the JSON export instead.`);
     const I = Object.fromEntries(['Path', 'Event', 'Bot', 'Referrer', 'Referrer scheme', 'Screen size', 'Location', 'FirstVisit', 'Date'].map((n) => [n, col(n)]));
     const yes = (v) => /^(true|1|t)$/i.test(String(v || '').trim());
-    const visits = [], events = [], sizes = [], locations = [];
+    const visits = [], events = [], sizes = [], locations = [], loads = [];
     for (const r of rows.slice(1)) {
-      if (String(r[I.Bot] || '0').trim() !== '0') continue; // bots never count
-      if (!yes(r[I.FirstVisit])) continue; // GoatCounter's own dashboard counts only first visits
+      if (String(r[I.Bot] || '0').trim() !== '0') continue;          // bots never count
       const day = localDay(r[I.Date]); if (!day) continue;
-      if (yes(r[I.Event])) { events.push({ day, name: r[I.Path], count: 1 }); continue; }
+      const ev = yes(r[I.Event]);
+      if (!ev) loads.push({ day, ref: refOf(r[I.Referrer], r[I['Referrer scheme']]), count: 1 }); // every page load
+      if (!yes(r[I.FirstVisit])) continue;                            // like GoatCounter: first visits only
+      if (ev) { events.push({ day, name: r[I.Path], count: 1 }); continue; }
       visits.push({ day, ref: refOf(r[I.Referrer], r[I['Referrer scheme']]), count: 1 });
       if (I['Screen size'] >= 0) { const w = parseInt(String(r[I['Screen size']] || '').split(',')[0], 10); if (w > 0) sizes.push({ day, width: w, count: 1 }); }
       if (I.Location >= 0 && r[I.Location]) locations.push({ day, country: String(r[I.Location]).split('-')[0], count: 1 });
     }
-    return { visits, events, sizes, locations, source: `GoatCounter CSV export (format ${version || '?'})` };
+    return { kind: 'csv', visits, events, sizes, locations, loads, created: null, source: `GoatCounter CSV export (format ${version || '?'})` };
   }
 
   async function load(file) {
@@ -329,200 +474,567 @@ td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
     return fromCSV(new TextDecoder().decode(bytes));
   }
 
-  /* ---------------- state ---------------- */
+  /* =========================================================================================
+     2. Turning the data into numbers for the chosen dates
+     ========================================================================================= */
   let DATA = null;
   let range = { from: '', to: '' };
+  let gran = 'day';
+  let tmode = 'count';
+  let M = null; // the numbers currently shown
+
   const inRange = (d) => (!range.from || d >= range.from) && (!range.to || d <= range.to);
   const sum = (list) => list.reduce((n, x) => n + x.count, 0);
-
   function dayList(from, to) {
-    const out = []; const d = new Date(`${from}T12:00:00`); const end = new Date(`${to}T12:00:00`);
-    while (d <= end && out.length < 3700) { out.push(localDay(d.toISOString())); d.setDate(d.getDate() + 1); }
+    const out = []; const d = noon(from); const end = noon(to);
+    while (d <= end && out.length < 4000) { out.push(localDay(d.toISOString())); d.setDate(d.getDate() + 1); }
     return out;
   }
-  const label = (day) => new Date(`${day}T12:00:00`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  const monday = (day) => { const d = noon(day); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return localDay(d.toISOString()); };
 
-  /* ---------------- drawing ---------------- */
-  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
-  const tip = $('tip');
-  const showTip = (e, value, name) => { tip.textContent = ''; const b = document.createElement('b'); b.textContent = value; tip.append(b, document.createTextNode(name)); tip.style.opacity = 1; const x = Math.min(e.clientX + 14, innerWidth - tip.offsetWidth - 8); tip.style.left = `${x}px`; tip.style.top = `${Math.max(8, e.clientY - tip.offsetHeight - 12)}px`; };
-  const hideTip = () => { tip.style.opacity = 0; };
-  const NS = 'http://www.w3.org/2000/svg';
-  const el = (name, attrs = {}, text) => { const n = document.createElementNS(NS, name); for (const k in attrs) n.setAttribute(k, attrs[k]); if (text != null) n.textContent = text; return n; };
-  const roundTop = (x, y, w, h, r) => { r = Math.min(r, w / 2, h); return `M${x},${y + h}V${y + r}Q${x},${y} ${x + r},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h}Z`; };
-  const roundRight = (x, y, w, h, r) => { r = Math.min(r, h / 2, w); return `M${x},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h - r}Q${x + w},${y + h} ${x + w - r},${y + h}H${x}Z`; };
-  // Clean whole-number ticks: a step of 1, 2 or 5 × 10ⁿ, and a top that is a multiple of it.
-  const ticksFor = (v) => { const raw = Math.max(1, v) / 4; const p = 10 ** Math.floor(Math.log10(raw)); const step = Math.max(1, [1, 2, 5, 10].map((m) => m * p).find((s) => s >= raw)); const top = Math.max(step, Math.ceil(Math.max(1, v) / step) * step); const out = []; for (let t = 0; t <= top + 1e-9; t += step) out.push(t); return { top, ticks: out }; };
-
-  function columns(box, items) {
-    // items: [{label, value, name}]
-    box.textContent = '';
-    const W = box.clientWidth, H = box.clientHeight;
-    const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': `Visits per day, ${items.length} days` });
-    const left = 36, bottom = 26, top = 10, right = 6;
-    const pw = W - left - right, ph = H - top - bottom;
-    const { top: max, ticks } = ticksFor(Math.max(0, ...items.map((i) => i.value)));
-    for (const v of ticks) {
-      const y = top + ph - (v / max) * ph;
-      svg.append(el('line', { x1: left, x2: W - right, y1: y, y2: y, stroke: css('--grid'), 'stroke-width': 1 }));
-      svg.append(el('text', { x: left - 6, y: y + 4, 'text-anchor': 'end', 'font-size': 11, fill: css('--ink-3'), 'font-family': 'system-ui, sans-serif' }, fmt(v)));
-    }
-    const slot = pw / Math.max(1, items.length);
-    const bw = Math.max(1, Math.min(24, slot - 2));
-    const every = Math.ceil(items.length / Math.max(1, Math.floor(pw / 56)));
-    items.forEach((it, i) => {
-      const x = left + i * slot + (slot - bw) / 2;
-      const h = (it.value / max) * ph;
-      if (h > 0) svg.append(el('path', { d: roundTop(x, top + ph - h, bw, h, Math.min(4, bw / 2)), fill: css('--blue') }));
-      const hit = el('rect', { x: left + i * slot, y: top, width: slot, height: ph, fill: 'transparent', tabindex: 0, 'aria-label': `${it.name}: ${fmt(it.value)} visits` });
-      hit.addEventListener('pointermove', (e) => showTip(e, `${fmt(it.value)} visits`, it.name));
-      hit.addEventListener('pointerleave', hideTip);
-      hit.addEventListener('focus', () => { const r = hit.getBoundingClientRect(); showTip({ clientX: r.left + r.width / 2, clientY: r.top + 40 }, `${fmt(it.value)} visits`, it.name); });
-      hit.addEventListener('blur', hideTip);
-      svg.append(hit);
-      if (i % every === 0) svg.append(el('text', { x: left + i * slot + slot / 2, y: H - 6, 'text-anchor': 'middle', 'font-size': 11, fill: css('--ink-3'), 'font-family': 'system-ui, sans-serif' }, it.label));
-    });
-    svg.append(el('line', { x1: left, x2: W - right, y1: top + ph, y2: top + ph, stroke: css('--line'), 'stroke-width': 1 }));
-    box.append(svg);
-  }
-
-  function hbars(box, items, unit = 'visitors') {
-    // items: [{label, value, color}] in display order
-    box.textContent = '';
-    const W = box.clientWidth;
-    const stacked = W < 460; // narrow screens: the label sits above its bar instead of beside it
-    const row = stacked ? 44 : 34, H = Math.max(row, items.length * row) + 4;
-    box.style.height = `${H}px`;
-    const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': items.map((i) => `${i.label}: ${fmt(i.value)}`).join('; ') });
-    const labW = stacked ? 0 : Math.min(230, W * 0.46), valW = 54;
-    const max = Math.max(1, ...items.map((i) => i.value));
-    items.forEach((it, i) => {
-      const y = i * row + 4;
-      const by = stacked ? y + 20 : y + 6;
-      svg.append(el('text', { x: 0, y: y + (stacked ? 13 : 17), 'font-size': 13, fill: css('--ink'), 'font-family': 'system-ui, sans-serif' }, it.label.length > 34 ? `${it.label.slice(0, 33)}…` : it.label));
-      const w = ((W - labW - valW) * it.value) / max;
-      if (w > 0) svg.append(el('path', { d: roundRight(labW, by, w, stacked ? 14 : 16, 4), fill: it.color || css('--blue') }));
-      svg.append(el('text', { x: labW + w + 6, y: by + 12, 'font-size': 13, 'font-weight': 600, fill: css('--ink'), 'font-family': 'system-ui, sans-serif' }, fmt(it.value)));
-      const hit = el('rect', { x: 0, y, width: W, height: row, fill: 'transparent', tabindex: 0, 'aria-label': `${it.label}: ${fmt(it.value)} ${unit}` });
-      hit.addEventListener('pointermove', (e) => showTip(e, `${fmt(it.value)} ${unit}`, it.label));
-      hit.addEventListener('pointerleave', hideTip);
-      svg.append(hit);
-    });
-    box.append(svg);
-  }
-
-  function segbar(box, parts) {
-    box.textContent = '';
-    const W = box.clientWidth, H = 40, total = parts.reduce((n, p) => n + p.value, 0);
-    const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': parts.map((p) => `${p.label}: ${fmt(p.value)} (${total ? Math.round((p.value / total) * 100) : 0}%)`).join('; ') });
-    let x = 0;
-    parts.forEach((p) => {
-      if (!p.value || !total) return;
-      const w = (W * p.value) / total - 2;
-      svg.append(el('rect', { x, y: 6, width: Math.max(1, w), height: 28, rx: 4, fill: p.color }));
-      const share = `${Math.round((p.value / total) * 100)}%`;
-      if (w > 44) svg.append(el('text', { x: x + 8, y: 25, 'font-size': 13, 'font-weight': 650, fill: '#ffffff', 'font-family': 'system-ui, sans-serif' }, share));
-      const hit = el('rect', { x, y: 0, width: Math.max(1, w + 2), height: H, fill: 'transparent', tabindex: 0, 'aria-label': `${p.label}: ${fmt(p.value)} (${share})` });
-      hit.addEventListener('pointermove', (e) => showTip(e, `${fmt(p.value)} · ${share}`, p.label));
-      hit.addEventListener('pointerleave', hideTip);
-      svg.append(hit);
-      x += w + 2;
-    });
-    box.append(svg);
-  }
-
-  function table(t, head, rows) {
-    t.textContent = '';
-    const tr = document.createElement('tr');
-    head.forEach((h, i) => { const th = document.createElement('th'); th.textContent = h; if (i) th.className = 'n'; tr.append(th); });
-    t.append(tr);
-    rows.forEach((r) => { const row = document.createElement('tr'); r.forEach((c, i) => { const td = document.createElement('td'); td.textContent = i ? fmt(c) : c; if (i) td.className = 'n'; row.append(td); }); t.append(row); });
-  }
-
-  /* ---------------- the report ---------------- */
-  let LAST = null;
-  function render() {
-    if (!DATA) return;
-    const V = DATA.visits.filter((v) => inRange(v.day));
-    const E = DATA.events.filter((v) => inRange(v.day));
-    const S = DATA.sizes.filter((v) => inRange(v.day));
-    const L = DATA.locations.filter((v) => inRange(v.day));
+  function compute() {
     const allDays = [...DATA.visits, ...DATA.events].map((v) => v.day).sort();
     const from = range.from || allDays[0];
     const to = range.to || allDays[allDays.length - 1];
-    const visits = sum(V);
+    const V0 = DATA.visits.filter((v) => inRange(v.day));
+    const V = V0.filter((v) => !v.ref.test);
+    const testVisits = sum(V0.filter((v) => v.ref.test));
+    const E = DATA.events.filter((v) => inRange(v.day));
     const ev = (name) => sum(E.filter((e) => e.name === name));
+    const visits = sum(V);
+    const qr = sum(V.filter((v) => v.ref.qr));
     const camp = sum(V.filter((v) => v.ref.type === 'campaign'));
-    $('t-visits').textContent = fmt(visits);
-    $('t-visits-d').textContent = from ? `${label(from)} – ${label(to)}` : '';
-    $('t-camp').textContent = fmt(camp);
-    $('t-stop').textContent = fmt(ev('stopping-point-reached'));
-    $('t-act').textContent = fmt(ev('activity-completed'));
-    $('range-text').textContent = from ? `${label(from)} ${from.slice(0, 4)} – ${label(to)} ${to.slice(0, 4)}` : 'no data in this range';
+    const direct = sum(V.filter((v) => v.ref.type === 'direct'));
+    const loads = DATA.loads ? sum(DATA.loads.filter((v) => inRange(v.day) && !v.ref.test)) : null;
 
-    // daily
+    // per day
     const days = from && to ? dayList(from, to) : [];
-    const per = {}; V.forEach((v) => { per[v.day] = (per[v.day] || 0) + v.count; });
-    const items = days.map((d) => ({ label: label(d), name: new Date(`${d}T12:00:00`).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }), value: per[d] || 0 }));
-    const best = items.reduce((b, i) => (i.value > (b ? b.value : -1) ? i : b), null);
-    $('s-daily').textContent = items.length ? `${fmt(visits)} visits over ${items.length} ${items.length === 1 ? 'day' : 'days'}${best && best.value ? `; busiest day ${best.name} (${fmt(best.value)})` : ''}. Days in ${TZ}.` : 'No visits in this date range.';
-    columns($('f-daily'), items);
-    table($('tb-daily'), ['Day', 'Visits'], days.map((d, i) => [d, items[i].value]));
+    const per = Object.fromEntries(days.map((d) => [d, { visits: 0, qr: 0, other: 0, ev: {} }]));
+    V.forEach((v) => { const p = per[v.day]; if (!p) return; p.visits += v.count; if (v.ref.qr) p.qr += v.count; else p.other += v.count; });
+    E.forEach((e) => { const p = per[e.day]; if (!p) return; p.ev[e.name] = (p.ev[e.name] || 0) + e.count; });
+
+    // buckets: days, or weeks starting on Monday (a week is "partial" if the dates cut it short)
+    const bucketsFor = (g) => {
+      if (g === 'day') return days.map((d) => ({ key: d, label: short(d), name: noon(d).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }), ndays: 1, partial: false, ...per[d] }));
+      const map = new Map();
+      days.forEach((d) => {
+        const k = monday(d);
+        if (!map.has(k)) map.set(k, { key: k, label: short(k), name: `Week of ${long(k)}`, ndays: 0, visits: 0, qr: 0, other: 0, ev: {} });
+        const b = map.get(k); const p = per[d];
+        b.ndays++; b.visits += p.visits; b.qr += p.qr; b.other += p.other;
+        for (const n in p.ev) b.ev[n] = (b.ev[n] || 0) + p.ev[n];
+      });
+      return [...map.values()].map((b) => ({ ...b, partial: b.ndays < 7, name: b.ndays < 7 ? `${b.name} (${b.ndays} of 7 days in range)` : b.name }));
+    };
 
     // sources
-    const src = {}; V.forEach((v) => { const k = `${v.ref.type}|${v.ref.label}`; src[k] = (src[k] || 0) + v.count; });
-    let srcItems = Object.entries(src).map(([k, value]) => { const [type, lab] = k.split(/\|(.*)/s); return { type, label: type === 'campaign' ? `Campaign: ${lab}` : lab, value }; }).sort((a, b) => (a.type === 'campaign' ? -1 : 0) - (b.type === 'campaign' ? -1 : 0) || b.value - a.value);
-    if (srcItems.length > 8) { const rest = srcItems.slice(7); srcItems = [...srcItems.slice(0, 7), { type: 'other', label: `Other (${rest.length})`, value: rest.reduce((n, x) => n + x.value, 0) }]; }
-    hbars($('f-source'), srcItems.map((s) => ({ ...s, color: s.type === 'campaign' ? css('--blue') : css('--muted-bar') })), 'visits');
-    table($('tb-source'), ['Source', 'Visits'], srcItems.map((s) => [s.label, s.value]));
+    const src = {};
+    V.forEach((v) => { const k = `${v.ref.type}|${v.ref.qr ? 1 : 0}|${v.ref.label}`; src[k] = (src[k] || 0) + v.count; });
+    let sources = Object.entries(src).map(([k, value]) => { const [type, q, ...rest] = k.split('|'); const lab = rest.join('|'); return { type, qr: q === '1', label: type === 'campaign' ? `${q === '1' ? 'QR' : 'Link'}: ${lab}` : lab, value }; })
+      .sort((a, b) => (b.type === 'campaign') - (a.type === 'campaign') || b.value - a.value);
+    if (sources.length > 9) { const rest = sources.slice(8); sources = [...sources.slice(0, 8), { type: 'other', label: `Other sources (${rest.length})`, value: rest.reduce((n, x) => n + x.value, 0) }]; }
 
     // devices + countries
     const dev = { Phone: 0, Tablet: 0, Computer: 0 };
-    S.forEach((s) => { dev[s.width < 600 ? 'Phone' : s.width < 1024 ? 'Tablet' : 'Computer'] += s.count; });
-    const parts = [['Phone', '--s1'], ['Tablet', '--s2'], ['Computer', '--s3']].map(([l, c]) => ({ label: l, value: dev[l], color: css(c) }));
-    segbar($('f-device'), parts);
-    const lg = $('lg-device'); lg.textContent = '';
-    parts.forEach((p) => { const s = document.createElement('span'); const i = document.createElement('i'); i.style.background = p.color; s.append(i, document.createTextNode(p.label)); lg.append(s); });
-    table($('tb-device'), ['Device', 'Visits'], parts.map((p) => [p.label, p.value]));
-    const cc = {}; L.forEach((l) => { if (l.country) cc[l.country] = (cc[l.country] || 0) + l.count; });
+    DATA.sizes.filter((s) => inRange(s.day)).forEach((s) => { dev[s.width < 600 ? 'Phone' : s.width < 1024 ? 'Tablet' : 'Computer'] += s.count; });
+    const cc = {}; DATA.locations.filter((l) => inRange(l.day)).forEach((l) => { if (l.country) cc[l.country] = (cc[l.country] || 0) + l.count; });
     let names; try { names = new Intl.DisplayNames(['en'], { type: 'region' }); } catch (e) { names = null; }
-    let ctry = Object.entries(cc).sort((a, b) => b[1] - a[1]).map(([c, value]) => ({ label: (names && names.of(c)) || c, value }));
-    if (ctry.length > 6) { const rest = ctry.slice(5); ctry = [...ctry.slice(0, 5), { label: `Other (${rest.length})`, value: rest.reduce((n, x) => n + x.value, 0) }]; }
-    hbars($('f-country'), ctry, 'visits');
-    table($('tb-country'), ['Country', 'Visits'], ctry.map((c) => [c.label, c.value]));
+    let countries = Object.entries(cc).sort((a, b) => b[1] - a[1]).map(([c, value]) => { let lab = c; try { lab = (names && names.of(c)) || c; } catch (e) { /* unknown code */ } return { label: lab, value }; });
+    if (countries.length > 6) { const rest = countries.slice(5); countries = [...countries.slice(0, 5), { label: `Other (${rest.length})`, value: rest.reduce((n, x) => n + x.value, 0) }]; }
 
-    // events
-    const stopItems = STOP_ORDER.map((n) => ({ label: EVENTS[n], value: ev(n) }));
-    const actItems = ACT_ORDER.map((n) => ({ label: EVENTS[n], value: ev(n) }));
-    hbars($('f-stop'), stopItems);
-    hbars($('f-act'), actItems);
-    table($('tb-stop'), ['Action', 'Visitors'], stopItems.map((s) => [s.label, s.value]));
-    table($('tb-act'), ['Action', 'Visitors'], actItems.map((s) => [s.label, s.value]));
-    const feed = ev('view-feed'), stop = ev('stopping-point-reached'), sugg = ev('moment-suggestions-shown'), done = ev('activity-completed');
-    const nStop = $('n-stop'), nAct = $('n-act');
-    nStop.hidden = !(feed && stop); nAct.hidden = !(sugg && done);
-    if (feed && stop) nStop.textContent = `About ${Math.round((stop / feed) * 100)}% of visits that opened the feed reached a stopping point (${fmt(stop)} of ${fmt(feed)}).`;
-    if (sugg && done) nAct.textContent = `About ${Math.round((done / sugg) * 100)}% of visits that saw activity suggestions completed an activity (${fmt(done)} of ${fmt(sugg)}).`;
-    $('src-text').textContent = `Source: ${DATA.source}. Bots are excluded.`;
-    LAST = { from, to, visits, camp, days, items, srcItems, parts, ctry, stopItems, actItems };
+    return {
+      from, to, visits, qr, camp, direct, loads, testVisits, ev, days,
+      day: bucketsFor('day'), week: bucketsFor('week'), sources, dev, countries,
+      feed: ev('view-feed'), stop: ev('stopping-point-reached'), done: ev('choice-done'), moment: ev('choice-moment'), cont: ev('choice-continue'),
+      moments: ev('view-moments'), sugg: ev('moment-suggestions-shown'), started: ev('activity-started'), completed: ev('activity-completed'), demo: ev('demo-started'),
+      rangeText: from ? `${long(from)} – ${long(to)}` : '',
+    };
   }
 
-  /* ---------------- controls ---------------- */
+  /* =========================================================================================
+     3. Charts (SVG). Each chart takes a theme, so the same code draws the page and the video images.
+     ========================================================================================= */
+  const NS = 'http://www.w3.org/2000/svg';
+  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const el = (name, attrs = {}, text) => { const n = document.createElementNS(NS, name); for (const k in attrs) n.setAttribute(k, attrs[k]); if (text != null) n.textContent = text; return n; };
+  const FONT = 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
+  const pageTheme = () => ({ ink: css('--ink'), ink2: css('--ink-2'), ink3: css('--ink-3'), grid: css('--grid'), base: css('--line'), blue: css('--blue'), green: css('--green'), orange: css('--orange'), muted: css('--muted-bar'), surface: css('--surface'), f: 1, live: true });
+  const VIDEO = { ink: '#f2f4ff', ink2: '#c9d0ee', ink3: '#a9b2d6', grid: '#1d2858', base: '#3a4572', blue: '#5b7cff', green: '#1aa874', orange: '#d95926', muted: '#5d6896', surface: '#0a1230', f: 2, live: false };
+
+  const roundTop = (x, y, w, h, r) => { r = Math.max(0, Math.min(r, w / 2, h)); return `M${x},${y + h}V${y + r}Q${x},${y} ${x + r},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h}Z`; };
+  const roundRight = (x, y, w, h, r) => { r = Math.max(0, Math.min(r, h / 2, w)); return `M${x},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h - r}Q${x + w},${y + h} ${x + w - r},${y + h}H${x}Z`; };
+  // Clean whole-number ticks: a step of 1, 2 or 5 × 10ⁿ, and a top that's a multiple of it.
+  const ticksFor = (v) => { const raw = Math.max(1, v) / 4; const p = 10 ** Math.floor(Math.log10(raw)); const step = Math.max(1, [1, 2, 5, 10].map((m) => m * p).find((s) => s >= raw)); const top = Math.max(step, Math.ceil(Math.max(1, v) / step) * step); const out = []; for (let t = 0; t <= top + 1e-9; t += step) out.push(t); return { top, ticks: out }; };
+  const txt = (th, x, y, s, size, extra = {}) => el('text', { x, y, 'font-size': size * th.f, fill: th.ink3, 'font-family': FONT, ...extra }, s);
+
+  // tooltip
+  const tip = $('tip');
+  function showTip(x, y, title, rows) {
+    tip.textContent = '';
+    const b = document.createElement('b'); b.textContent = title; tip.append(b);
+    rows.forEach(([color, text]) => { const s = document.createElement('span'); if (color) { const i = document.createElement('i'); i.style.background = color; s.append(i); } s.append(document.createTextNode(text)); tip.append(s); });
+    tip.style.opacity = 1;
+    tip.style.left = `${Math.max(8, Math.min(x + 14, innerWidth - tip.offsetWidth - 8))}px`;
+    tip.style.top = `${Math.max(8, y - tip.offsetHeight - 14)}px`;
+  }
+  const hideTip = () => { tip.style.opacity = 0; };
+  function hover(node, fn) {
+    node.setAttribute('tabindex', 0);
+    node.addEventListener('pointermove', (e) => fn(e.clientX, e.clientY));
+    node.addEventListener('pointerleave', hideTip);
+    node.addEventListener('focus', () => { const r = node.getBoundingClientRect(); fn(r.left + r.width / 2, r.top + 30); });
+    node.addEventListener('blur', hideTip);
+  }
+
+  // Stacked columns: items [{label, name, partial, values: [..]}], series [{name, color}]
+  function stackCols(W, H, items, series, th, unit = 'visits') {
+    const f = th.f;
+    const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: 'img', 'aria-label': `${series.map((s) => s.name).join(' and ')}, ${items.length} periods` });
+    const left = 40 * f, bottom = 28 * f, top = 10 * f, right = 8 * f, gap = 2 * f;
+    const pw = W - left - right, ph = H - top - bottom;
+    const totals = items.map((it) => it.values.reduce((a, b) => a + b, 0));
+    const { top: max, ticks } = ticksFor(Math.max(0, ...totals));
+    for (const v of ticks) {
+      const y = top + ph - (v / max) * ph;
+      svg.append(el('line', { x1: left, x2: W - right, y1: y, y2: y, stroke: v ? th.grid : th.base, 'stroke-width': f }));
+      svg.append(txt(th, left - 8 * f, y + 4 * f, fmt(v), 11, { 'text-anchor': 'end' }));
+    }
+    const slot = pw / Math.max(1, items.length);
+    const bw = Math.max(1, Math.min(24 * f, slot * 0.72));
+    const every = Math.ceil(items.length / Math.max(1, Math.floor(pw / (58 * f))));
+    items.forEach((it, i) => {
+      const x = left + i * slot + (slot - bw) / 2;
+      let y0 = top + ph;
+      const last = it.values.reduce((k, v, j) => (v > 0 ? j : k), -1);
+      it.values.forEach((v, j) => {
+        if (!v) return;
+        const h = (v / max) * ph;
+        const hh = j > 0 && y0 < top + ph ? Math.max(0.5, h - gap) : h; // 2px surface gap between segments
+        const yTop = y0 - h;
+        if (j === last) svg.append(el('path', { d: roundTop(x, yTop, bw, hh, 4 * f), fill: series[j].color, opacity: it.partial ? 0.6 : 1 }));
+        else svg.append(el('rect', { x, y: yTop, width: bw, height: hh, fill: series[j].color, opacity: it.partial ? 0.6 : 1 }));
+        y0 -= h;
+      });
+      if (i % every === 0) svg.append(txt(th, left + i * slot + slot / 2, H - 8 * f, it.label, 11, { 'text-anchor': 'middle' }));
+      if (th.live) {
+        const hit = el('rect', { x: left + i * slot, y: top, width: slot, height: ph, fill: 'transparent', 'aria-label': `${it.name}: ${series.map((s, j) => `${s.name} ${fmt(it.values[j])}`).join(', ')}` });
+        hover(hit, (cx, cy) => showTip(cx, cy, it.name, [...series.map((s, j) => [s.color, `${s.name}: ${fmt(it.values[j])}`]), [null, `Total: ${fmt(totals[i])} ${unit}`]]));
+        svg.append(hit);
+      }
+    });
+    return svg;
+  }
+
+  // Lines: items [{label, name, values: [..] (null = no data)}], series [{name, color, dash}]
+  function lines(W, H, items, series, th, percent) {
+    const f = th.f;
+    const longest = Math.max(...series.map((s) => s.name.length));
+    const labelRoom = W >= 560 * f ? Math.min(W * 0.26, 14 * f + longest * 7 * f) : 8 * f;
+    const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: 'img', 'aria-label': `${series.map((s) => s.name).join(', ')} over ${items.length} periods` });
+    const left = 44 * f, bottom = 28 * f, top = 14 * f, right = labelRoom;
+    const pw = W - left - right, ph = H - top - bottom;
+    const all = items.flatMap((it) => it.values.filter((v) => v != null));
+    const { top: max, ticks } = percent ? { top: 100, ticks: [0, 25, 50, 75, 100] } : ticksFor(Math.max(0, ...all));
+    for (const v of ticks) {
+      const y = top + ph - (v / max) * ph;
+      svg.append(el('line', { x1: left, x2: left + pw, y1: y, y2: y, stroke: v ? th.grid : th.base, 'stroke-width': f }));
+      svg.append(txt(th, left - 8 * f, y + 4 * f, percent ? `${v}%` : fmt(v), 11, { 'text-anchor': 'end' }));
+    }
+    const xAt = (i) => (items.length === 1 ? left + pw / 2 : left + (i / (items.length - 1)) * pw);
+    const yAt = (v) => top + ph - (v / max) * ph;
+    const every = Math.ceil(items.length / Math.max(1, Math.floor(pw / (58 * f))));
+    items.forEach((it, i) => { if (i % every === 0) svg.append(txt(th, xAt(i), H - 8 * f, it.label, 11, { 'text-anchor': 'middle' })); });
+    const ends = [];
+    series.forEach((s, j) => {
+      let d = ''; let pen = false;
+      items.forEach((it, i) => { const v = it.values[j]; if (v == null) { pen = false; return; } d += `${pen ? 'L' : 'M'}${xAt(i).toFixed(1)},${yAt(v).toFixed(1)}`; pen = true; });
+      if (d) svg.append(el('path', { d, fill: 'none', stroke: s.color, 'stroke-width': 2 * f, 'stroke-linejoin': 'round', 'stroke-linecap': 'round', ...(s.dash ? { 'stroke-dasharray': `${5 * f} ${4 * f}` } : {}) }));
+      if (items.length <= 31) items.forEach((it, i) => { const v = it.values[j]; if (v != null) svg.append(el('circle', { cx: xAt(i), cy: yAt(v), r: 4 * f, fill: s.color, stroke: th.surface, 'stroke-width': 2 * f })); });
+      for (let i = items.length - 1; i >= 0; i--) if (items[i].values[j] != null) { ends.push({ s, x: xAt(i), y: yAt(items[i].values[j]) }); break; }
+    });
+    if (labelRoom > 20) {   // direct labels at the end of each line, nudged apart so they don't overlap
+      const gapL = 16 * f;
+      ends.sort((a, b) => a.y - b.y);
+      for (let k = 1; k < ends.length; k++) if (ends[k].y - ends[k - 1].y < gapL) ends[k].y = ends[k - 1].y + gapL;
+      const over = ends.length ? ends[ends.length - 1].y - (top + ph) : 0;   // keep labels inside the plot
+      if (over > 0) { ends.forEach((e) => { e.y -= over; }); for (let k = ends.length - 2; k >= 0; k--) if (ends[k + 1].y - ends[k].y < gapL) ends[k].y = ends[k + 1].y - gapL; }
+      ends.forEach((e) => svg.append(txt(th, left + pw + 10 * f, e.y + 4 * f, e.s.name, 12, { fill: th.ink2, 'font-weight': 600 })));
+    }
+    if (th.live && items.length) {
+      const cross = el('line', { x1: 0, x2: 0, y1: top, y2: top + ph, stroke: th.ink3, 'stroke-width': 1, opacity: 0 });
+      svg.append(cross);
+      const hit = el('rect', { x: left - 10, y: top, width: pw + 20, height: ph, fill: 'transparent', 'aria-label': 'Hover or focus for values' });
+      const at = (cx) => { const r = svg.getBoundingClientRect(); const x = ((cx - r.left) / r.width) * W; return items.length === 1 ? 0 : Math.max(0, Math.min(items.length - 1, Math.round(((x - left) / pw) * (items.length - 1)))); };
+      hover(hit, (cx, cy) => {
+        const i = at(cx); const it = items[i];
+        cross.setAttribute('x1', xAt(i)); cross.setAttribute('x2', xAt(i)); cross.setAttribute('opacity', 0.6);
+        showTip(cx, cy, it.name, series.map((s, j) => [s.color, `${s.name}: ${it.values[j] == null ? 'no visits' : percent ? `${it.values[j]}%` : fmt(it.values[j])}`]));
+      });
+      hit.addEventListener('pointerleave', () => cross.setAttribute('opacity', 0));
+      hit.addEventListener('blur', () => cross.setAttribute('opacity', 0));
+      svg.append(hit);
+    }
+    return svg;
+  }
+
+  // Horizontal bars: items [{label, value, color}]
+  function hbars(W, items, th, unit = 'visits', narrow, rowH) {
+    const f = th.f;
+    const stacked = narrow != null ? narrow : W < 460;
+    const row = rowH || (stacked ? 46 : 36) * f, H = Math.max(row, items.length * row) + 4 * f;
+    const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: 'img', 'aria-label': items.map((i) => `${i.label}: ${fmt(i.value)}`).join('; ') });
+    const labW = stacked ? 0 : Math.min(260 * f, W * 0.46), valW = 60 * f;
+    const max = Math.max(1, ...items.map((i) => i.value));
+    items.forEach((it, i) => {
+      const y = i * row + 4 * f;
+      const bh = stacked ? 14 * f : rowH ? Math.round(rowH * 0.42) : 18 * f;
+      const by = stacked ? y + 21 * f : y + (row - bh) / 2;
+      svg.append(txt(th, 0, stacked ? y + 13 * f : by + bh / 2 + 4.5 * f, clip(it.label, 38), 13, { fill: th.ink }));
+      const w = ((W - labW - valW) * it.value) / max;
+      if (w > 0) svg.append(el('path', { d: roundRight(labW, by, w, bh, 4 * f), fill: it.color || th.blue }));
+      svg.append(txt(th, labW + w + 7 * f, by + bh / 2 + 4.5 * f, fmt(it.value), 13, { fill: th.ink, 'font-weight': 650 }));
+      if (th.live) {
+        const hit = el('rect', { x: 0, y, width: W, height: row, fill: 'transparent', 'aria-label': `${it.label}: ${fmt(it.value)} ${unit}` });
+        hover(hit, (cx, cy) => showTip(cx, cy, it.label, [[it.color || th.blue, `${fmt(it.value)} ${unit}`]]));
+        svg.append(hit);
+      }
+    });
+    return svg;
+  }
+
+  // One bar split into parts: [{label, value, color}]
+  function segbar(W, parts, th) {
+    const f = th.f, H = 44 * f, total = parts.reduce((n, p) => n + p.value, 0);
+    const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: 'img', 'aria-label': parts.map((p) => `${p.label}: ${fmt(p.value)} (${pct(p.value, total)}%)`).join('; ') });
+    let x = 0;
+    parts.forEach((p) => {
+      if (!p.value || !total) return;
+      const w = Math.max(1, (W * p.value) / total - 2 * f);
+      svg.append(el('rect', { x, y: 6 * f, width: w, height: 30 * f, rx: 4 * f, fill: p.color }));
+      if (w > 48 * f) svg.append(txt(th, x + 9 * f, 26 * f, `${pct(p.value, total)}%`, 13, { fill: '#ffffff', 'font-weight': 700 }));
+      if (th.live) { const hit = el('rect', { x, y: 0, width: w + 2, height: H, fill: 'transparent', 'aria-label': `${p.label}: ${fmt(p.value)}` }); hover(hit, (cx, cy) => showTip(cx, cy, p.label, [[p.color, `${fmt(p.value)} visits · ${pct(p.value, total)}%`]])); svg.append(hit); }
+      x += w + 2 * f;
+    });
+    return svg;
+  }
+
+  function mount(id, svgOrNull, emptyText) {
+    const box = $(id); box.textContent = '';
+    if (!svgOrNull) { const d = document.createElement('div'); d.className = 'none'; d.textContent = emptyText || 'Nothing recorded in these dates yet.'; box.append(d); return; }
+    box.append(svgOrNull);
+  }
+  function legend(id, items) {
+    const lg = $(id); lg.textContent = '';
+    items.forEach(([color, name, dash]) => { const s = document.createElement('span'); const i = document.createElement('i'); if (dash) i.className = 'dash'; else i.style.background = color; s.append(i, document.createTextNode(name)); lg.append(s); });
+  }
+  function table(id, head, rows) {
+    const t = $(id); t.textContent = '';
+    const tr = document.createElement('tr');
+    head.forEach((h, i) => { const th = document.createElement('th'); th.textContent = h; if (i) th.className = 'n'; tr.append(th); });
+    t.append(tr);
+    rows.forEach((r) => { const row = document.createElement('tr'); r.forEach((c, i) => { const td = document.createElement('td'); td.textContent = i && typeof c === 'number' ? fmt(c) : c; if (i) td.className = 'n'; row.append(td); }); t.append(row); });
+  }
+
+  /* =========================================================================================
+     4. The report
+     ========================================================================================= */
+  const TABLES = {}; // chart name → {head, rows} for CSV downloads
+
+  // the series used by several charts and the video images
+  const visitSeries = (th) => [{ name: 'From QR codes', color: th.blue }, { name: 'All other visits', color: th.muted }];
+  const visitItems = (B) => B.map((b) => ({ label: b.label, name: b.name, partial: b.partial, values: [b.qr, b.other] }));
+  const stopItems = (m, th) => [
+    { label: EVENTS['choice-done'], value: m.done, color: th.green },
+    { label: EVENTS['choice-moment'], value: m.moment, color: th.green },
+    { label: EVENTS['choice-continue'], value: m.cont, color: th.blue },
+  ];
+  const actItems = (m, th) => [
+    { label: 'Saw activity suggestions', value: m.sugg, color: th.green },
+    { label: 'Started an activity', value: m.started, color: th.green },
+    { label: 'Completed an activity', value: m.completed, color: th.green },
+  ];
+  const trendSeries = (th, percent) => [
+    ...(percent ? [] : [{ name: 'Visits', color: th.ink3, dash: true }]),
+    { name: 'Reached a stopping point', color: th.blue },
+    { name: 'Completed an activity', color: th.green },
+  ];
+  const trendItems = (B, percent) => B.map((b) => {
+    const s = b.ev['stopping-point-reached'] || 0, c = b.ev['activity-completed'] || 0;
+    const values = percent ? (b.visits ? [Math.min(100, Math.round((s / b.visits) * 100)), Math.min(100, Math.round((c / b.visits) * 100))] : [null, null]) : [b.visits, s, c];
+    return { label: b.label, name: b.name, values };
+  });
+
+  function render() {
+    if (!DATA) return;
+    M = compute();
+    const m = M, th = pageTheme(), B = m[gran];
+    const unitWord = gran === 'day' ? 'day' : 'week';
+
+    // tiles
+    $('t-visits').textContent = fmt(m.visits);
+    $('t-visits-d').textContent = m.from ? `${short(m.from)} – ${short(m.to)} ${m.to.slice(0, 4)} · one device, up to 8 hours` : '';
+    $('t-qr').textContent = fmt(m.qr);
+    $('t-qr-d').textContent = m.visits ? `${pct(m.qr, m.visits)}% of visits · tracked QR links only` : 'tracked QR links only';
+    $('t-feed').textContent = fmt(m.feed);
+    $('t-stop').textContent = fmt(m.stop);
+    $('t-start').textContent = fmt(m.started);
+    $('t-done').textContent = fmt(m.completed);
+    $('range-text').textContent = m.rangeText || 'no data in these dates';
+
+    // visits over time
+    const best = B.reduce((b, x) => (x.visits > (b ? b.visits : 0) ? x : b), null);
+    $('m-visits').textContent = B.length
+      ? `${fmt(m.visits)} visits in ${B.length} ${unitWord}${B.length === 1 ? '' : 's'}${best ? `; busiest ${unitWord}: ${best.name} (${fmt(best.visits)})` : ''}. A visit is one device in a session of up to 8 hours. Days are in ${TZ}.${gran === 'week' && B.some((b) => b.partial) ? ' Paler bars are weeks only partly inside the chosen dates.' : ''}`
+      : 'No visits in these dates.';
+    mount('f-visits', m.visits ? stackCols($('f-visits').clientWidth || 600, 300, visitItems(B), visitSeries(th), th) : null, 'No visits recorded in these dates yet.');
+    legend('lg-visits', visitSeries(th).map((s) => [s.color, s.name]));
+    TABLES.visits = { head: [gran === 'day' ? 'Day' : 'Week starting', 'Visits', 'From QR codes', 'Other visits'], rows: B.map((b) => [b.key, b.visits, b.qr, b.other]) };
+    table('tb-visits', TABLES.visits.head, TABLES.visits.rows);
+
+    // sources
+    const srcItems = m.sources.map((s) => ({ ...s, color: s.type === 'campaign' ? th.blue : th.muted }));
+    const sw = $('f-source').clientWidth || 500;
+    mount('f-source', srcItems.length ? hbars(sw, srcItems, th) : null, 'No visits recorded in these dates yet.');
+    TABLES.source = { head: ['Source', 'Visits'], rows: m.sources.map((s) => [s.label, s.value]) };
+    table('tb-source', TABLES.source.head, TABLES.source.rows);
+
+    // stopping point
+    const mini = $('mini-stop'); mini.textContent = '';
+    [['Opened the feed', m.feed], ['Reached a stopping point', m.stop]].forEach(([l, v]) => { const d = document.createElement('div'); const b = document.createElement('b'); b.textContent = fmt(v); d.append(b, document.createTextNode(l)); mini.append(d); });
+    const sItems = stopItems(m, th);
+    mount('f-stop', sItems.some((i) => i.value) ? hbars($('f-stop').clientWidth || 500, sItems, th) : null, 'No stopping-point choices recorded in these dates yet.');
+    const nStop = $('n-stop');
+    nStop.hidden = !(m.stop && m.feed);
+    if (!nStop.hidden) nStop.textContent = `In about ${pct(m.stop, m.feed)}% of visits that opened the feed, someone reached a stopping point (${fmt(m.stop)} of ${fmt(m.feed)}). Stepping away was chosen in ${fmt(m.done + m.moment)} visit-choices and continuing in ${fmt(m.cont)}. Each choice counts once per visit, and one visit can make different choices at different stopping points.`;
+    TABLES.stop = { head: ['What happened', 'Visits'], rows: [['Opened the feed', m.feed], ['Reached a stopping point', m.stop], ...sItems.map((s) => [s.label, s.value])] };
+    table('tb-stop', TABLES.stop.head, TABLES.stop.rows);
+
+    // activities
+    const aItems = actItems(m, th);
+    mount('f-act', aItems.some((i) => i.value) ? hbars($('f-act').clientWidth || 500, aItems, th) : null, 'No offline activities recorded in these dates yet.');
+    const nAct = $('n-act');
+    nAct.hidden = !(m.sugg && m.completed);
+    if (!nAct.hidden) nAct.textContent = `In about ${pct(m.completed, m.sugg)}% of visits that saw activity suggestions, someone completed an activity (${fmt(m.completed)} of ${fmt(m.sugg)}).`;
+    TABLES.act = { head: ['What happened', 'Visits'], rows: [['Opened Find Your Next Moment', m.moments], ...aItems.map((s) => [s.label, s.value])] };
+    table('tb-act', TABLES.act.head, TABLES.act.rows);
+
+    // devices + countries
+    const parts = [['Phone', th.blue], ['Tablet', th.orange], ['Computer', th.green]].map(([l, c]) => ({ label: l, value: m.dev[l], color: c }));
+    const dw = $('f-device').clientWidth || 500;
+    mount('f-device', parts.some((p) => p.value) ? segbar(dw, parts, th) : null, 'No screen sizes recorded in these dates.');
+    legend('lg-device', parts.map((p) => [p.color, `${p.label} ${fmt(p.value)}`]));
+    mount('f-country', m.countries.length ? hbars(dw, m.countries, th) : null, 'No countries recorded in these dates.');
+    TABLES.device = { head: ['Group', 'Item', 'Visits'], rows: [...parts.map((p) => ['Device', p.label, p.value]), ...m.countries.map((c) => ['Country', c.label, c.value])] };
+    table('tb-device', ['Device or country', 'Visits'], [...parts.map((p) => [p.label, p.value]), ...m.countries.map((c) => [c.label, c.value])]);
+
+    // engagement over time
+    const percent = tmode === 'pct';
+    const tSeries = trendSeries(th, percent);
+    const tItems = trendItems(B, percent);
+    $('m-trend').textContent = percent
+      ? `Share of each ${unitWord}’s visits in which someone reached a stopping point or completed an activity. With few visits, percentages jump around, so read them with the counts.`
+      : `Visits, and visits in which someone reached a stopping point or completed an offline activity, per ${unitWord}.`;
+    mount('f-trend', m.visits || m.stop || m.completed ? lines($('f-trend').clientWidth || 600, 300, tItems, tSeries, th, percent) : null, 'Nothing recorded in these dates yet.');
+    legend('lg-trend', tSeries.map((s) => [s.color, s.name, s.dash]));
+    TABLES.trend = { head: [gran === 'day' ? 'Day' : 'Week starting', 'Visits', 'Reached a stopping point', 'Completed an activity', 'Stopping point (% of visits)', 'Completed (% of visits)'],
+      rows: B.map((b) => { const s = b.ev['stopping-point-reached'] || 0, c = b.ev['activity-completed'] || 0; return [b.key, b.visits, s, c, b.visits ? `${pct(s, b.visits)}%` : '', b.visits ? `${pct(c, b.visits)}%` : '']; }) };
+    table('tb-trend', TABLES.trend.head, TABLES.trend.rows);
+
+    // data notes
+    const notes = $('datanotes'); notes.textContent = '';
+    const exportDays = [...DATA.visits, ...DATA.events].map((v) => v.day).sort();
+    [
+      `Source: ${DATA.source}. The file covers ${long(exportDays[0])} – ${long(exportDays[exportDays.length - 1])}.`,
+      `Dates are shown in ${TZ}. GoatCounter stores times in UTC, rounded to the hour.`,
+      'Bots and automated browsers are excluded by GoatCounter.',
+      m.testVisits ? `${fmt(m.testVisits)} team test visit${m.testVisits === 1 ? '' : 's'} (campaign links starting with “test”) left out.` : 'No team test visits (campaign links starting with “test”) in these dates.',
+      m.loads != null ? `Page loads, including reloads: ${fmt(m.loads)} (CSV export only).` : 'Page loads including reloads aren’t in JSON exports; only visits are.',
+      m.demo ? `Demo Mode was started in ${fmt(m.demo)} visit${m.demo === 1 ? '' : 's'}. Nothing else from Demo Mode is counted.` : 'Demo Mode and research mode are never counted.',
+    ].forEach((t) => { const li = document.createElement('li'); li.textContent = t; notes.append(li); });
+    $('g-loads-d').textContent = m.loads != null ? `Every time the page loaded, including reloads: ${fmt(m.loads)} in these dates.` : 'Every time the page loaded, including reloads. Only CSV exports include this, so it isn’t shown for JSON exports.';
+
+    renderScript(m);
+    scheduleSlides();
+  }
+
+  /* =========================================================================================
+     5. Competition section: sentences, video images, CSV files
+     ========================================================================================= */
+  function renderScript(m) {
+    const out = [];
+    if (m.visits) out.push(`Between ${long(m.from)} and ${long(m.to)}, ScrollWise received ${fmt(m.visits)} visit${m.visits === 1 ? '' : 's'}, counted anonymously and without cookies by GoatCounter.`);
+    if (m.qr) out.push(`${fmt(m.qr)} of these visits (${pct(m.qr, m.visits)}%) came from our QR codes, which use a tracking link.`);
+    if (m.stop) out.push(`In ${fmt(m.stop)} visit${m.stop === 1 ? '' : 's'}, someone scrolled until ScrollWise paused the feed at a stopping point.`);
+    if (m.done || m.moment) out.push(`At the stopping point, “I’m done for now” was chosen in ${fmt(m.done)} visit${m.done === 1 ? '' : 's'} and “Find Your Next Moment” in ${fmt(m.moment)}; “Continue intentionally” in ${fmt(m.cont)}.`);
+    if (m.completed) out.push(`${fmt(m.completed)} visit${m.completed === 1 ? '' : 's'} included a completed offline activity.`);
+    out.push('These numbers show how people used ScrollWise. They don’t prove that it improved anyone’s well-being; that’s what our research study looks at.');
+    const box = $('script'); box.textContent = '';
+    out.forEach((t) => {
+      const row = document.createElement('div'); row.className = 'line';
+      const p = document.createElement('p'); p.textContent = t;
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'btn btn-sm'; b.textContent = 'Copy';
+      b.addEventListener('click', async () => { try { await navigator.clipboard.writeText(t); b.textContent = 'Copied'; } catch (e) { const r = document.createRange(); r.selectNodeContents(p); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Selected: press Ctrl+C'; } setTimeout(() => { b.textContent = 'Copy'; }, 2000); });
+      row.append(p, b); box.append(row);
+    });
+  }
+
+  // Draws the ScrollWise mark on a canvas.
+  function logo(g, x, y, s) {
+    g.save(); g.translate(x, y); g.scale(s / 40, s / 40);
+    g.fillStyle = '#131D47'; g.beginPath(); g.roundRect(0, 0, 40, 40, 12); g.fill();
+    g.strokeStyle = '#5B7CFF'; g.lineWidth = 3.6; g.lineCap = 'round'; g.stroke(new Path2D('M11.5 29.5c5 2.2 15.5 1.6 15.5-4.4 0-6.4-14-3.4-14-9.6 0-4.4 5.2-5.6 9.4-4.6'));
+    g.fillStyle = '#3EE3A6'; g.beginPath(); g.arc(28.6, 11.4, 3.5, 0, Math.PI * 2); g.fill();
+    g.restore();
+  }
+  function wrapText(g, text, x, y, maxW, lh, maxLines = 3) {
+    const words = text.split(' '); let line = ''; let n = 0;
+    for (const w of words) {
+      const t = line ? `${line} ${w}` : w;
+      if (g.measureText(t).width > maxW && line) { g.fillText(line, x, y + n * lh); n++; line = w; if (n >= maxLines) return n; } else line = t;
+    }
+    if (line) { g.fillText(line, x, y + n * lh); n++; }
+    return n;
+  }
+  const svgImage = (svg) => new Promise((res) => {
+    svg.setAttribute('xmlns', NS);
+    const img = new Image(); img.onload = () => res(img); img.onerror = () => res(null);
+    img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(new XMLSerializer().serializeToString(svg))}`;
+  });
+
+  // The video images. Each one: a kicker, a headline, a line of context, a chart and the source.
+  function slideDefs(m) {
+    const B = m[gran]; const V = VIDEO;
+    const CW = 1680, CH = 540;
+    return [
+      { id: 'reach', title: 'Total visits', ok: m.visits > 0, kicker: 'REACH', head: `${fmt(m.visits)} visits`, sub: `to ScrollWise, ${m.rangeText}`, legend: visitSeries(V).map((s) => [s.color, s.name]),
+        chart: () => stackCols(CW, CH, visitItems(B), visitSeries(V), V), note: 'A visit is one device in a session of up to 8 hours. It isn’t the number of different people.' },
+      { id: 'qr', title: 'Visits from QR codes', ok: m.qr > 0, kicker: 'OUR POSTER', head: `${fmt(m.qr)} visits from our QR codes`, sub: `${pct(m.qr, m.visits)}% of all ${fmt(m.visits)} visits, ${m.rangeText}`,
+        chart: () => hbars(CW, m.sources.slice(0, 6).map((s) => ({ ...s, color: s.type === 'campaign' ? V.blue : V.muted })), V, 'visits', false, Math.min(120, CH / Math.min(6, m.sources.length || 1))), note: 'Only QR codes with a tracking link are counted as QR visits. Other scans appear as Direct visits.' },
+      { id: 'stop', title: 'The stopping point', ok: m.stop > 0, kicker: 'THE STOPPING POINT', head: `${fmt(m.stop)} visits reached a stopping point`, sub: 'What people chose when ScrollWise paused the feed', legend: [[V.green, 'Stepped away'], [V.blue, 'Kept scrolling, on purpose']],
+        chart: () => hbars(CW, stopItems(m, V), V, 'visits', false, 120), note: 'Visits in which each choice was made at least once. One visit can include more than one stopping point.' },
+      { id: 'act', title: 'Offline activities', ok: m.completed > 0 || m.started > 0, kicker: 'OFFLINE MOMENTS', head: `${fmt(m.completed)} visits included a completed offline activity`, sub: `From suggestion to a finished activity, ${m.rangeText}`,
+        chart: () => hbars(CW, actItems(m, V), V, 'visits', false, 120), note: '“Completed” means someone tapped Done in ScrollWise. What they did offline can’t be seen.' },
+      { id: 'trend', title: 'Engagement over time', ok: m.visits > 0 && B.length > 1, kicker: 'OVER TIME', head: 'Engagement over time', sub: `Per ${gran === 'day' ? 'day' : 'week'}, ${m.rangeText}`, legend: trendSeries(V, false).map((s) => [s.color, s.name, s.dash]),
+        chart: () => lines(CW, CH, trendItems(B, false), trendSeries(V, false), V, false), note: 'Shows how ScrollWise was used, not whether it improved well-being.' },
+    ];
+  }
+
+  async function drawSlide(def) {
+    const W = 1920, H = 1080, X = 120;
+    const c = document.createElement('canvas'); c.width = W; c.height = H;
+    const g = c.getContext('2d');
+    g.fillStyle = '#0a1230'; g.fillRect(0, 0, W, H);
+    const glow = g.createRadialGradient(W * 0.86, -60, 10, W * 0.86, -60, 900); glow.addColorStop(0, 'rgba(43,89,255,0.42)'); glow.addColorStop(1, 'rgba(43,89,255,0)');
+    g.fillStyle = glow; g.fillRect(0, 0, W, H);
+    try { await document.fonts.load('700 72px "Bricolage Local"'); } catch (e) { /* system font */ }
+    const display = '"Bricolage Local", system-ui, sans-serif';
+    logo(g, X, 70, 52);
+    g.fillStyle = '#f2f4ff'; g.font = `600 30px ${FONT}`; g.fillText('scroll', X + 68, 106); const sw = g.measureText('scroll').width; g.fillStyle = '#7b97ff'; g.fillText('wise', X + 68 + sw, 106);
+    g.fillStyle = '#7b97ff'; g.font = `700 24px ${FONT}`; g.fillText(def.kicker, X, 196);
+    g.fillStyle = '#ffffff'; g.font = `700 76px ${display}`; const hl = wrapText(g, def.head, X, 274, W - X * 2, 82, 2);
+    g.fillStyle = '#c9d0ee'; g.font = `400 32px ${FONT}`; g.fillText(def.sub, X, 274 + (hl - 1) * 82 + 56);
+    const top = 274 + (hl - 1) * 82 + 100;
+    const svg = def.chart();
+    const img = await svgImage(svg);
+    const avail = H - top - 150;
+    if (img) { const sw2 = Number(svg.getAttribute('width')), sh = Number(svg.getAttribute('height')); const k = Math.min(1, avail / sh, (W - X * 2) / sw2); g.drawImage(img, X, top, sw2 * k, sh * k); }
+    let lx = X;
+    if (def.legend) {
+      g.font = `500 24px ${FONT}`;
+      def.legend.forEach(([color, name, dash]) => {
+        if (dash) { g.strokeStyle = color; g.lineWidth = 4; g.setLineDash([10, 8]); g.beginPath(); g.moveTo(lx, H - 117); g.lineTo(lx + 26, H - 117); g.stroke(); g.setLineDash([]); }
+        else { g.fillStyle = color; g.beginPath(); g.roundRect(lx, H - 128, 22, 22, 5); g.fill(); }
+        g.fillStyle = '#c9d0ee'; g.fillText(name, lx + 36, H - 109); lx += 36 + g.measureText(name).width + 40;
+      });
+    }
+    g.fillStyle = '#a9b2d6'; g.font = `400 22px ${FONT}`;
+    g.fillText(def.note, X, H - 66);
+    g.fillStyle = '#7f89b3'; g.fillText(`Source: GoatCounter (anonymous, cookieless) · ScrollWise · taliakasissieh.github.io/scrollwise`, X, H - 34);
+    return c;
+  }
+
+  let slideTimer = 0, slideRun = 0;
+  const slideURLs = [];
+  function scheduleSlides() { clearTimeout(slideTimer); slideTimer = setTimeout(renderSlides, 250); }
+  async function renderSlides() {
+    const run = ++slideRun;
+    const box = $('slides');
+    const defs = slideDefs(M);
+    slideURLs.splice(0).forEach((u) => URL.revokeObjectURL(u));
+    box.textContent = '';
+    for (const def of defs) {
+      const card = document.createElement('div'); card.className = 'slide';
+      const pv = document.createElement('div'); pv.className = 'pv';
+      const t = document.createElement('div'); t.className = 't'; t.textContent = def.title;
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'btn btn-sm'; b.textContent = 'Download 1920 × 1080 PNG'; b.disabled = true;
+      card.append(pv, t, b); box.append(card);
+      if (!def.ok) { const p = document.createElement('p'); p.textContent = 'Not enough data in these dates for this image yet.'; pv.append(p); continue; }
+      const canvas = await drawSlide(def);
+      if (run !== slideRun) return;
+      const blob = await new Promise((res) => canvas.toBlob(res, 'image/png'));
+      if (!blob || run !== slideRun) return;
+      const url = URL.createObjectURL(blob); slideURLs.push(url);
+      const img = document.createElement('img'); img.alt = `${def.title}: ${def.head}`; img.src = url; pv.append(img);
+      b.disabled = false;
+      b.addEventListener('click', () => save(blob, `scrollwise-video-${def.id}-${M.from}-to-${M.to}.png`));
+    }
+  }
+
+  function save(blob, name) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
+  // CSV with formula-like cells neutralised (campaign and referrer names come from visitors).
+  function csv(rows) {
+    const q = (v) => { let s = String(v ?? ''); if (/^[=+\-@\t\r]/.test(s) && !/^-?\d+(\.\d+)?%?$/.test(s)) s = `'${s}`; return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+    return new Blob([`﻿${rows.map((r) => r.map(q).join(',')).join('\r\n')}\r\n`], { type: 'text/csv;charset=utf-8' });
+  }
+  const fileRange = () => `${M.from}-to-${M.to}`;
+
+  function summaryRows() {
+    const m = M;
+    const rows = [['metric', 'value', 'what it measures']];
+    rows.push(['dates', m.rangeText, `Days in ${TZ}`]);
+    rows.push(['website visits', m.visits, 'One device opening ScrollWise in a session of up to 8 hours. Not the number of different people.']);
+    rows.push(['unique visitors (people)', 'not measured', 'Would need personal identifiers, which ScrollWise avoids.']);
+    rows.push(['page loads incl. reloads', m.loads == null ? 'not in JSON export' : m.loads, 'Every page load. Only in CSV exports.']);
+    rows.push(['visits from QR codes', m.qr, 'Campaign links with "qr" in the name, e.g. ?utm_campaign=poster-qr']);
+    rows.push(['visits from all campaign links', m.camp, 'Any link with ?utm_campaign=']);
+    rows.push(['direct visits (no referrer)', m.direct, 'Includes QR codes without a campaign link, typed addresses, bookmarks and some apps. Not the same as QR scans.']);
+    rows.push(['opened the feed', m.feed, 'Visits in which the feed was opened']);
+    rows.push(['reached a stopping point', m.stop, 'Visits in which ScrollWise paused the feed at least once']);
+    rows.push(['chose "I’m done for now"', m.done, 'Visits in which this choice was made at least once']);
+    rows.push(['chose "Find Your Next Moment"', m.moment, 'Visits in which this choice was made at least once']);
+    rows.push(['chose "Continue intentionally"', m.cont, 'Visits in which this choice was made at least once']);
+    rows.push(['saw activity suggestions', m.sugg, 'Visits in which suggestions were shown']);
+    rows.push(['started an offline activity', m.started, 'Visits in which an activity was started']);
+    rows.push(['completed an offline activity', m.completed, 'Visits in which someone tapped Done on an activity. What happened offline can’t be seen.']);
+    rows.push(['team test visits left out', m.testVisits, 'Campaign links starting with "test"']);
+    rows.push(['source', DATA.source, 'GoatCounter, anonymous and cookieless. Bots excluded.']);
+    rows.push(['note', 'Engagement, not proof of impact', 'These numbers show how ScrollWise was used; they do not prove it improved well-being.']);
+    return rows;
+  }
+
+  /* =========================================================================================
+     6. Controls
+     ========================================================================================= */
+  function pressed(group, attr, value) { document.querySelectorAll(`#${group} button`).forEach((b) => b.setAttribute('aria-pressed', String(b.dataset[attr] === value))); }
   function setPreset(p) {
-    document.querySelectorAll('#presets button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.p === p)));
+    pressed('presets', 'p', p);
     const all = [...DATA.visits, ...DATA.events].map((v) => v.day).sort();
     const last = all[all.length - 1];
     if (p === 'all' || !last) range = { from: '', to: '' };
-    else { const d = new Date(`${last}T12:00:00`); d.setDate(d.getDate() - (Number(p) - 1)); range = { from: localDay(d.toISOString()), to: last }; }
+    else { const d = noon(last); d.setDate(d.getDate() - (Number(p) - 1)); range = { from: localDay(d.toISOString()), to: last }; }
     $('from').value = range.from || all[0] || ''; $('to').value = range.to || last || '';
     render();
   }
   document.querySelectorAll('#presets button').forEach((b) => b.addEventListener('click', () => setPreset(b.dataset.p)));
   for (const id of ['from', 'to']) $(id).addEventListener('change', () => {
-    range = { from: $('from').value, to: $('to').value };
-    document.querySelectorAll('#presets button').forEach((b) => b.setAttribute('aria-pressed', 'false'));
+    let f = $('from').value, t = $('to').value;
+    if (f && t && f > t) [f, t] = [t, f];
+    range = { from: f, to: t };
+    pressed('presets', 'p', '');
     render();
   });
+  document.querySelectorAll('#gran button').forEach((b) => b.addEventListener('click', () => { gran = b.dataset.g; pressed('gran', 'g', gran); render(); }));
+  document.querySelectorAll('#tmode button').forEach((b) => b.addEventListener('click', () => { tmode = b.dataset.m; pressed('tmode', 'm', tmode); render(); }));
 
   async function open(file) {
     const err = $('err'); err.hidden = true;
@@ -531,6 +1043,9 @@ td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
       if (!data.visits.length && !data.events.length) throw new Error('This export contains no visits yet. Try again after people have visited the site.');
       DATA = data;
       $('empty').hidden = true; $('report').hidden = false; $('actions').hidden = false;
+      const all = [...DATA.visits, ...DATA.events].map((v) => v.day).sort();
+      gran = (noon(all[all.length - 1]) - noon(all[0])) / 864e5 > 62 ? 'week' : 'day';
+      pressed('gran', 'g', gran);
       setPreset('all');
     } catch (e) {
       err.textContent = e && e.message ? e.message : 'This file couldn’t be read.';
@@ -542,48 +1057,44 @@ td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
   drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('is-over'); });
   drop.addEventListener('dragleave', () => drop.classList.remove('is-over'));
   drop.addEventListener('drop', (e) => { e.preventDefault(); drop.classList.remove('is-over'); if (e.dataTransfer.files[0]) open(e.dataTransfer.files[0]); });
-  $('again').addEventListener('click', () => { DATA = null; $('report').hidden = true; $('actions').hidden = true; $('empty').hidden = false; });
-  let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(render, 150); });
+  $('again').addEventListener('click', () => { DATA = null; M = null; $('report').hidden = true; $('actions').hidden = true; $('empty').hidden = false; });
+  let rz; let lastW = innerWidth; addEventListener('resize', () => { if (innerWidth === lastW) return; lastW = innerWidth; clearTimeout(rz); rz = setTimeout(() => { if (DATA) render(); }, 150); });
 
-  // Summary file for spreadsheets or video editing software.
-  $('dl-summary').addEventListener('click', () => {
-    if (!LAST) return;
-    const q = (v) => (/[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v));
-    const lines = [['section', 'item', 'value'], ['range', 'from', LAST.from], ['range', 'to', LAST.to], ['total', 'visits', LAST.visits], ['total', 'visits from campaign links', LAST.camp]];
-    LAST.days.forEach((d, i) => lines.push(['visits per day', d, LAST.items[i].value]));
-    LAST.srcItems.forEach((s) => lines.push(['source', s.label, s.value]));
-    LAST.parts.forEach((p) => lines.push(['device', p.label, p.value]));
-    LAST.ctry.forEach((c) => lines.push(['country', c.label, c.value]));
-    [...LAST.stopItems, ...LAST.actItems].forEach((s) => lines.push(['visitors who', s.label, s.value]));
-    const blob = new Blob([`﻿${lines.map((l) => l.map(q).join(',')).join('\r\n')}\r\n`], { type: 'text/csv;charset=utf-8' });
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `scrollwise-visits-${LAST.from}-to-${LAST.to}.csv`; document.body.append(a); a.click(); a.remove();
-  });
+  // downloads
+  const dlSummary = () => M && save(csv(summaryRows()), `scrollwise-summary-${fileRange()}.csv`);
+  $('dl-summary').addEventListener('click', dlSummary);
+  $('dl-summary-2').addEventListener('click', dlSummary);
+  const periodRows = (B) => [['period start', 'days in period', 'visits', 'from QR codes', 'other visits', ...Object.keys(EVENTS).map((k) => EVENTS[k])], ...B.map((b) => [b.key, b.ndays, b.visits, b.qr, b.other, ...Object.keys(EVENTS).map((k) => b.ev[k] || 0)])];
+  $('dl-days').addEventListener('click', () => M && save(csv(periodRows(M.day)), `scrollwise-daily-${fileRange()}.csv`));
+  $('dl-weeks').addEventListener('click', () => M && save(csv(periodRows(M.week)), `scrollwise-weekly-${fileRange()}.csv`));
+  document.querySelectorAll('.csv').forEach((b) => b.addEventListener('click', () => { const t = TABLES[b.dataset.chart]; if (t && M) save(csv([t.head, ...t.rows]), `scrollwise-${b.dataset.chart}-${fileRange()}.csv`); }));
 
-  // "Save as image": the chart card as a 2x PNG, for slides or the competition video.
+  // "Save image": the chart card as a sharp PNG, with its title and the source.
   document.querySelectorAll('.save').forEach((b) => b.addEventListener('click', async () => {
     const card = b.closest('.card');
     const svgs = [...card.querySelectorAll('.fig svg')];
-    if (!svgs.length) return;
+    if (!svgs.length || !M) return;
     const title = card.querySelector('h2').textContent;
     const scale = 2, pad = 24, W = card.clientWidth;
-    const heights = svgs.map((s) => s.getBoundingClientRect().height);
-    const drawn = svgs.map((s, i) => heights[i] * ((W - pad * 2) / s.getBoundingClientRect().width));
-    const H = pad * 2 + 34 + drawn.reduce((n, h) => n + h + 16, 0) + 24;
+    const sizes = svgs.map((s) => { const r = s.getBoundingClientRect(); return { w: r.width, h: r.height }; });
+    const drawn = sizes.map((s) => s.h * ((W - pad * 2) / s.w));
+    const legendItems = [...card.querySelectorAll('.legend span')].map((s) => ({ color: s.querySelector('i').style.background || css('--ink-3'), text: s.textContent }));
+    const H = pad * 2 + 36 + drawn.reduce((n, h) => n + h + 16, 0) + (legendItems.length ? 30 : 0) + 26;
     const c = document.createElement('canvas'); c.width = W * scale; c.height = H * scale;
     const g = c.getContext('2d'); g.scale(scale, scale);
     g.fillStyle = css('--surface'); g.fillRect(0, 0, W, H);
-    g.fillStyle = css('--ink'); g.font = '650 18px system-ui, sans-serif'; g.fillText(title, pad, pad + 18);
-    let y = pad + 34;
+    g.fillStyle = css('--ink'); g.font = `650 19px ${FONT}`; g.fillText(title, pad, pad + 18);
+    let y = pad + 36;
     for (let i = 0; i < svgs.length; i++) {
-      const s = svgs[i].cloneNode(true); s.setAttribute('xmlns', NS); s.setAttribute('width', svgs[i].getBoundingClientRect().width); s.setAttribute('height', heights[i]);
-      const img = new Image();
-      await new Promise((res) => { img.onload = res; img.onerror = res; img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(new XMLSerializer().serializeToString(s))}`; });
-      g.drawImage(img, pad, y, W - pad * 2, drawn[i]);
+      const img = await svgImage(svgs[i].cloneNode(true));
+      if (img) g.drawImage(img, pad, y, W - pad * 2, drawn[i]);
       y += drawn[i] + 16;
     }
-    g.fillStyle = css('--ink-3'); g.font = '12px system-ui, sans-serif';
-    g.fillText(`ScrollWise · ${LAST ? `${label(LAST.from)} – ${label(LAST.to)} ${LAST.to.slice(0, 4)}` : ''} · source: GoatCounter (cookieless)`, pad, H - pad + 4);
-    const a = document.createElement('a'); a.href = c.toDataURL('image/png'); a.download = `scrollwise-${b.dataset.chart}.png`; document.body.append(a); a.click(); a.remove();
+    if (legendItems.length) { let x = pad; g.font = `13px ${FONT}`; legendItems.forEach((l) => { g.fillStyle = l.color; g.fillRect(x, y, 12, 12); g.fillStyle = css('--ink-2'); g.fillText(l.text, x + 18, y + 11); x += 18 + g.measureText(l.text).width + 18; }); y += 30; }
+    g.fillStyle = css('--ink-3'); g.font = `12px ${FONT}`;
+    g.fillText(`ScrollWise · ${M.rangeText} · source: GoatCounter (anonymous, cookieless)`, pad, H - pad + 6);
+    const blob = await new Promise((res) => c.toBlob(res, 'image/png'));
+    if (blob) save(blob, `scrollwise-${b.dataset.chart}-${fileRange()}.png`);
   }));
 }
 </script>

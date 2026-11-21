@@ -190,8 +190,8 @@ export function Privacy({ onBack, onReset }) {
 
       {counted ? (
         <Block icon="chart" title="Anonymous visit counts" id="pv-count">
-          <p>To find out how many people visit ScrollWise, the website counts visits with GoatCounter, a privacy-friendly analytics service. It uses no cookies, stores nothing on your device, and doesn’t store your IP address or anything that identifies you.</p>
-          <p>For each visit it records: the page, the date, the website or poster link you came from, your browser, operating system, screen size and country. It also counts a few actions anonymously: opening the feed, reaching a stopping point and which choice you made, seeing activity suggestions, and starting or finishing an offline activity.</p>
+          <p>To find out how many visits ScrollWise gets, the website counts them with GoatCounter, a privacy-friendly analytics service. It uses no cookies, stores nothing on your device, and doesn’t store your IP address or anything that identifies you.</p>
+          <p>For each visit it records: the page, the date, the website or poster link you came from, your browser, operating system, screen size and approximate location (country). It also counts a few actions anonymously: opening the feed, reaching a stopping point and which choice you made, seeing activity suggestions, and starting or finishing an offline activity.</p>
           <p>It never records what you see or write in the feed, your saved data, Demo Mode or anything in research mode. The student team sees only totals.</p>
           <p>
             <b>Turning it off:</b> Settings → About and privacy → Anonymous visit counts. Browsers that send “Do Not Track” or “Global Privacy Control” are never counted.

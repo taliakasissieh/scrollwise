@@ -50,8 +50,8 @@ Tip: **Demo Mode** (Settings) gives a two-minute guided tour with throwaway data
 ## Visit counts
 - Turn counting **off on every team device** (Settings → About and privacy → Anonymous visit counts), so tests don’t count as visitors.
 - Live numbers: the GoatCounter dashboard (the adult who made the account has the login).
-- Charts for the video: export from GoatCounter, then open `…/scrollwise/team-report/`.
-- New posters, videos or posts link to `…/scrollwise/?utm_campaign=NAME` so their visits can be counted separately.
+- Charts, video images (1920 × 1080) and script sentences: export from GoatCounter (Settings → Export/Import → Export to JSON), then open `…/scrollwise/team-report/` and choose the file.
+- New posters, videos or posts link to `…/scrollwise/?utm_campaign=NAME` so their visits can be counted separately. Put `qr` in the name for QR codes (`poster-qr`). Names starting with `test` are left out as team tests.
 - Everything is explained in `ANALYTICS.md`.
 
 ## Research

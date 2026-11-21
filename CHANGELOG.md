@@ -1,5 +1,12 @@
 # Changelog
 
+## Team analytics dashboard (21 November 2026)
+- The team report is now a full analytics dashboard in ScrollWise’s navy, electric blue and green: visits, visits from QR codes, opened the feed, stopping points, activities started and completed; visits over time (daily or weekly, QR vs other); sources; the stopping-point choices (stepping away vs continuing); offline activities; engagement over time (counts or % of visits); devices and countries. Date presets and custom dates, tooltips by mouse or keyboard, a table, image and CSV for every chart.
+- New “For the competition video” section: five 1920 × 1080 images, script sentences written from the real numbers, CSV downloads with explanations, and what each number does and doesn’t mean (visits vs unique visitors vs page loads, QR vs direct visits, engagement vs proven impact).
+- Campaign links: the campaign name is now also sent as its source, so GoatCounter’s export files keep it. Campaigns with “qr” in the name count as QR visits; names starting with “test” are left out as team tests.
+- Privacy notice says “approximate location (country)”. `ANALYTICS.md` rewritten with exact GoatCounter sign-up and setup steps.
+- Tested with GoatCounter’s own counting script on a simulated copy of the live address, and with test exports built from GoatCounter’s export format.
+
 ## Anonymous visit counts (21 November 2026)
 - Optional, privacy-friendly analytics with GoatCounter: no cookies, no personal data, nothing stored on the device. Off until a site code is set in `package.json`.
 - Counts one page view per visit (with campaign links such as `?utm_campaign=poster-qr`) and anonymous events: opening the feed, reaching a stopping point, each stopping-point choice, seeing activity suggestions, starting and completing an activity, and Demo Mode.

@@ -1,123 +1,168 @@
-# Visit counts (analytics)
+# Visit counts and the team analytics dashboard
 
-ScrollWise can count its visitors anonymously with **GoatCounter**, a free, open-source analytics service built for privacy. The team can then show real, measurable interest in the competition video, without collecting anything about the people who visit.
+ScrollWise can count its visits anonymously with **GoatCounter**, a free, open-source analytics service built for privacy. The team can use the numbers to show ScrollWise's real reach and how people use it, without collecting anything about the people who visit.
 
-**Status:** the code is built in and tested, but counting stays **off** until the team creates a GoatCounter account and sets its site code (section 2). Until then, nothing is counted or sent.
+**Status:** everything is built and tested. Counting stays **off** until the team creates a GoatCounter account and the site code is set (section 2). Until then nothing is counted or sent, and the dashboard has nothing to show.
 
 ---
 
-## 1. Why GoatCounter
+## 1. How it works
 
-| | GoatCounter (chosen) | Umami Cloud (free Hobby) | Google Analytics 4 |
-| --- | --- | --- | --- |
-| Cost | Free for non-commercial use | Free up to 100,000 events a month | Free |
-| Cookies | None | None | Yes, so a consent banner is needed |
-| Data kept on the free plan | Aggregated statistics | 6 months, then deleted | Yes |
-| Events (stopping point etc.) | Yes | Yes | Yes |
-| Campaign links | Yes (`utm_campaign`) | Yes | Yes |
-| Export | CSV and JSON | Yes | Yes |
-| Good fit for a teenage audience | Yes | Yes | No: cookies, profiling, more personal data |
+```
+visitor's browser ──(anonymous count)──▶ GoatCounter ──(export file)──▶ team dashboard (in your browser)
+```
 
-GoatCounter doesn’t use cookies and doesn’t store IP addresses. To tell visits apart it keeps a hash of the site, browser and IP address in memory for 8 hours, and never writes it to disk. Its makers state that no GDPR consent notice is needed. Umami Cloud would also work; its free plan deletes data after 6 months, which is too short for a competition that runs into 2027.
+- **ScrollWise** sends one count per page load and a few anonymous events (section 3) to GoatCounter.
+- **GoatCounter** keeps aggregated statistics. Its own dashboard at `https://YOUR-CODE.goatcounter.com` needs a sign-in, so it is private.
+- **The team dashboard** at `https://taliakasissieh.github.io/scrollwise/team-report/` turns a GoatCounter export file into ScrollWise-styled charts, video images and CSV files. It reads the file only on your device and can't connect to the internet. It isn't linked from the app and shows nothing until a real export is loaded.
+
+The dashboard can't fetch live data by itself: that would need a GoatCounter API key in a public web page, which would be a secret anyone could copy. Downloading an export takes about a minute and keeps everything private.
 
 ## 2. Turning it on (one adult, about 5 minutes)
 
-GoatCounter needs an email address and a password, so a teacher or parent should create the account. Nobody else on the team needs one.
+GoatCounter needs an email address and a password, so a **teacher or parent** should create the account. Nobody else needs one. Never send the password to anyone, including Claude.
 
-1. Go to **https://www.goatcounter.com** and sign up.
-2. As the **site code**, choose `scrollwise` if it’s free. Your private dashboard will then be at `https://scrollwise.goatcounter.com`. Any other code works too.
+1. Go to **https://www.goatcounter.com** and choose **Sign up**.
+2. Fill in the form:
+   - **Account name:** `scrollwise` (if it's taken, try `scrollwise-team` or similar). This becomes your private address, `https://scrollwise.goatcounter.com`, and it is the **site code** ScrollWise needs.
+   - **Site domain** (optional): `taliakasissieh.github.io`
+   - **Email address** and **Password** (at least 8 characters)
+   - **Fill in 9 here:** type `9` (a simple anti-spam check)
 3. Confirm the email GoatCounter sends.
-4. In GoatCounter’s settings, look at the data-collection options and switch off anything you don’t need (for example the region within a country).
-5. Set the site code in ScrollWise:
-   - in `package.json`, set `"analytics": { "goatcounter": "scrollwise" }` (your code, not the full address);
+4. In GoatCounter, open **Settings** and check:
+   - **Dashboard viewable by:** *Only logged in users* (the default). Keep it that way.
+   - **Data collection:** untick **Region**, so only the country is kept. Keep **Sessions** ticked: it is what stops reloads counting as new visits.
+5. Send the **site code only** (for example `scrollwise`) to whoever maintains the website, or set it yourself:
+   - in `package.json`, set `"analytics": { "goatcounter": "scrollwise" }`;
    - run `npm run build` and publish the new `docs` folder.
-
-   Or send the code to whoever maintains the site (Claude can do this step too).
-6. Check it works: open the website on a phone, then look at the GoatCounter dashboard. A visit should appear within a minute or two.
-7. **Turn counting off on every team member’s own devices** (section 5), so testing doesn’t inflate the numbers.
+6. Check it works (section 8).
+7. **Turn counting off on every team member's own devices** (section 6).
 
 ## 3. What is counted
 
-**One count per visit** (page load): the date, where the visitor came from (another website, or a campaign link such as the poster’s), browser, operating system, screen size and country. GoatCounter works out the country from the IP address without storing it.
+**One count per page load.** GoatCounter turns these into **visits**: the first page load of a device in a session of up to 8 hours. Reloading the page or coming back within 8 hours on the same device doesn't add a visit. Each count includes the date, where the visitor came from (another website, or a campaign link such as the poster's), browser, operating system, screen width and approximate location. GoatCounter works the location out from the IP address without storing the address.
 
-**A few anonymous actions**, each counted at most once per visitor per visit:
+**A few anonymous events**, each counted at most once per visit:
 
 | Event name | Meaning |
 | --- | --- |
 | `view-feed` | Opened the feed |
 | `stopping-point-reached` | Reached a stopping point (post limit or time limit) |
-| `choice-done` | Chose “I’m done for now” |
-| `choice-moment` | Chose “Find Your Next Moment” |
-| `choice-continue` | Chose “Continue intentionally” |
+| `choice-done` | Chose "I'm done for now" |
+| `choice-moment` | Chose "Find Your Next Moment" |
+| `choice-continue` | Chose "Continue intentionally" |
 | `view-moments` | Opened Find Your Next Moment |
 | `moment-suggestions-shown` | Saw offline activity suggestions |
 | `activity-started` | Started an offline activity |
-| `activity-completed` | Completed an offline activity |
+| `activity-completed` | Completed an offline activity (tapped Done) |
 | `view-dashboard`, `view-about` | Opened the dashboard / About page |
 | `demo-started` | Started Demo Mode |
 
-**Never counted or sent:** names, accounts, which posts were viewed, likes, comments, saved posts, personal stats and goals, anything in Demo Mode (apart from the fact it was started), and **anything in research mode**, not even a page view. Research data stays separate, exactly as before.
+**Never counted or sent:** names, emails, accounts, which posts were viewed, likes, comments, saved posts, personal stats and goals, which activity was chosen, anything in Demo Mode (apart from the fact it was started), and **anything in research mode**, not even a page view. Research data stays separate, exactly as before.
 
-**Not counted at all:** visitors who switch counting off in Settings, browsers that send Do Not Track or Global Privacy Control, the offline copy (`dist/scrollwise.html`), and anyone whose browser blocks the counter. The timer, the stopping point and research mode work exactly the same whether counting is on, off or blocked.
+**Not counted at all:** visitors who switch counting off in Settings, browsers that send Do Not Track or Global Privacy Control, the offline copy (`dist/scrollwise.html`), automated browsers (GoatCounter marks them as bots) and anyone whose browser blocks the counter. The timer, the stopping point and research mode work exactly the same whether counting is on, off or blocked.
 
-The code is in `src/lib/analytics.js`, with the rules explained at the top.
+GoatCounter sets no cookies and stores nothing on the visitor's device. The code is in `src/lib/analytics.js`, with the rules explained at the top.
 
-## 4. The poster’s QR code
+## 4. Visits, unique visitors and page loads
 
-**Important:** if the printed QR code opens `https://taliakasissieh.github.io/scrollwise/` exactly (no `?` part), its scans **cannot be told apart** from other visits. They appear as **“Direct”** visits, together with people who typed the address, used a bookmark or opened it from some apps. Nothing on the website can change that after printing.
+| Term | What it means | Shown? |
+| --- | --- | --- |
+| **Visits** | One device opening ScrollWise in a session of up to 8 hours | Yes: the main number |
+| **Unique visitors (different people)** | Would need a way to recognise people across days, which ScrollWise deliberately avoids | **Not measured** |
+| **Page loads** | Every time the page loaded, including reloads | Only with a CSV export |
 
-To check what the printed code contains, point a phone camera at it: the address appears before you open it. If it starts with a different website (a QR-code service), that service may have its own scan counter worth checking.
+So "350 visits" never means "350 people". The same person on two days counts as two visits. People sharing one network and an identical phone and browser version within 8 hours can count as one visit. Visit numbers are therefore approximate. They are more likely to be a little low than too high, unless team testing is counted (section 6).
 
-**What you can honestly say from the printed code:** the number of Direct visits, described as “visits with no referrer, which include poster scans”, never as “QR scans”.
+## 5. QR codes and campaign links
 
-**To count poster visits reliably from now on** (the old code keeps working forever):
+### The printed poster
 
-- For new prints, stickers over the old code, or a second code on the poster, use:
-  `https://taliakasissieh.github.io/scrollwise/?utm_campaign=poster-qr`
-- Use a different name for each place, so you can compare them:
+If the printed QR code opens `https://taliakasissieh.github.io/scrollwise/` exactly (no `?` part), its scans **cannot** be told apart from other visits. They appear as **"Direct"** visits, together with people who typed the address, used a bookmark or opened it from some apps. Nothing on the website can change that after printing, and the old code keeps working.
 
-  | Where | Link |
-  | --- | --- |
-  | Poster QR code | `…/scrollwise/?utm_campaign=poster-qr` |
-  | Competition video | `…/scrollwise/?utm_campaign=video` |
-  | Instagram bio or story | `…/scrollwise/?utm_campaign=instagram` |
-  | School newsletter or email | `…/scrollwise/?utm_campaign=school-email` |
+To check what the printed code contains, point a phone camera at it: the address appears before you open it.
 
-- Visits from these links appear under **Campaigns** in GoatCounter and in blue in the team report.
-- ScrollWise reads the campaign once, then removes it from the address bar, so if a visitor copies and shares the link, the next person isn’t counted as a poster visit too.
-- Test the new code once from a phone before printing.
+**What you can honestly say about it:** "N direct visits, which include poster scans". Never "N QR scans".
 
-## 5. Keeping the numbers honest: team devices
+### Counting QR codes from now on
 
-On **every phone, tablet and laptop** the team uses for testing or presenting: open ScrollWise → **Settings → About and privacy → Anonymous visit counts → off**. The switch is remembered on that device. Check the GoatCounter dashboard after a team testing session: if visits went up, a device was missed.
+Add a campaign link to every new QR code, sticker, flyer or post:
 
-## 6. The private dashboards
+| Where | Link |
+| --- | --- |
+| Poster QR code (new prints or a sticker) | `https://taliakasissieh.github.io/scrollwise/?utm_campaign=poster-qr` |
+| Flyers | `…/scrollwise/?utm_campaign=flyer-qr` |
+| Competition video (QR on screen) | `…/scrollwise/?utm_campaign=video-qr` |
+| Instagram bio or story | `…/scrollwise/?utm_campaign=instagram` |
+| School newsletter or email | `…/scrollwise/?utm_campaign=school-email` |
 
-**GoatCounter dashboard (live numbers):** `https://YOUR-CODE.goatcounter.com`, sign-in needed, so it’s private. It shows visits per day, campaigns, referrers, browsers, systems, screen sizes, locations and the events above. Choose the date range at the top. Whoever has the login can show it to the team; if you want teammates to have their own logins, GoatCounter’s settings let you add users.
+The rules:
 
-**Team visit report (charts for the video):** `https://taliakasissieh.github.io/scrollwise/team-report/`
+- **Put `qr` in the name of every campaign used in a QR code.** The dashboard counts campaigns with "qr" in their name as **QR code visits**, and all others as other tracked links.
+- Use lowercase letters, numbers and hyphens only.
+- **Campaign names starting with `test`** (for example `?utm_campaign=test-setup`) are treated as team tests: the dashboard leaves them out of every number.
+- ScrollWise reads the campaign once, then removes it from the address bar. If a visitor copies and shares the address, the next person isn't counted as a poster visit too.
+- ScrollWise also copies the campaign name into `utm_source`. GoatCounter's export files keep only the source name, so this is what lets the dashboard tell `poster-qr` apart from `video-qr`.
+- Scan every new code once with a phone before printing.
 
-1. In GoatCounter’s settings, open **Export** and create an export (the JSON export is recommended; a CSV export only contains visits made after “Individual pageviews” was switched on in GoatCounter’s settings).
-2. Download the file, open the team report and choose the file.
-3. The report shows visits, visits per day, campaign visits, where visits came from, devices, countries, the stopping-point choices and the offline activities, with tables for each chart.
-4. Pick a date range, then use **Save as image** on a chart (a sharp PNG for the video), **Download summary (CSV)** for a spreadsheet, or **Print or save as PDF**.
+## 6. Keeping the numbers honest: team devices
 
-The report reads the file **only in your browser**: the page is technically unable to send data anywhere, it isn’t linked from the app, and it shows nothing until a real export is loaded. It never shows sample numbers.
+On **every phone, tablet and laptop** the team uses for testing or presenting, open ScrollWise and go to **Settings → About and privacy → Anonymous visit counts → off**. The switch is remembered on that device and browser. Check the GoatCounter dashboard after a team testing session: if visits went up, a device was missed.
 
-## 7. Using the numbers in the competition video
+## 7. Seeing the numbers
+
+**Live numbers.** Sign in at `https://YOUR-CODE.goatcounter.com`. GoatCounter's own dashboard shows visits per day, pages and events, referrers, **Campaigns**, browsers, systems, screen sizes and locations. Choose the dates at the top. To let teammates look without their own login, an adult can set **Dashboard viewable by** to *Logged in users or with secret token* and share the secret link with the team only. The data is anonymous either way.
+
+**The team dashboard (charts for the video):**
+
+1. In GoatCounter, open **Settings → Export/Import**. Under **Export to JSON**, choose **Start export**.
+2. When it's ready (GoatCounter also emails you), download it from **Last 10 exports**. CSV exports work too, but only contain visits made after "Individual pageviews" was switched on.
+3. Open `https://taliakasissieh.github.io/scrollwise/team-report/` and choose the file.
+
+The dashboard shows:
+
+- **Totals:** visits, visits from QR codes, opened the feed, reached a stopping point, activities started and completed.
+- **Visits over time,** daily or weekly, split into QR-code visits and all other visits.
+- **Where visits came from:** each campaign, Direct, and other websites.
+- **The stopping point:** how often the feed was paused, and which choice people made (stepping away vs continuing).
+- **Offline activities:** suggestions, then started, then completed.
+- **Engagement over time:** as counts or as a percentage of visits.
+- **Devices and countries.**
+
+Pick a date range (all dates, last 7 or 30 days, or your own), and switch between daily and weekly. Hover over or tab to any bar or line to see its numbers. Every chart has a table view, a **Save image** button and a **CSV** button.
+
+## 8. Checking that it works (after the code is set)
+
+1. On a phone that isn't a team testing device, open `https://taliakasissieh.github.io/scrollwise/?utm_campaign=test-setup`.
+2. Within a minute or two, the GoatCounter dashboard should show a visit, with `test-setup` under Campaigns.
+3. Optional: download a JSON export and load it into the team dashboard. The visit is listed under "team test visits left out", so it never inflates the real numbers.
+4. Then switch counting off on that phone if it belongs to the team.
+
+## 9. Using the numbers in the competition video
+
+The dashboard's **For the competition video** section has:
+
+- **Video-ready images (1920 × 1080 PNG):** total visits, QR code visits, the stopping point, offline activities and engagement over time, in ScrollWise's navy and blue, with the source and dates on each.
+- **Sentences for the script,** written from the real numbers, with Copy buttons.
+- **CSV downloads:** a summary with an explanation of every number, plus daily and weekly figures.
+- **What the numbers mean (and don't).**
 
 Do:
-- name the source and dates: “GoatCounter (cookieless), 1 December 2026 – 15 January 2027”;
-- say “visits”, not “people”: one person on one device counts once per visit of up to 8 hours;
-- call only campaign-link visits “poster” or “QR” visits;
-- compare things that are comparable, for example “X% of visits that opened the feed reached a stopping point”;
-- check the team report against the GoatCounter dashboard before recording.
+- name the source and dates: "GoatCounter (anonymous, cookieless), 1 December 2026 – 15 January 2027";
+- say "visits", not "people" or "users";
+- call only campaign-link visits with "qr" in the name "QR" or "poster" visits;
+- describe engagement as how ScrollWise was used: "in 120 visits, someone chose 'I'm done for now'";
+- check the dashboard's totals against GoatCounter's own dashboard before recording.
 
-Don’t:
-- add or estimate numbers, or show a screenshot of test data;
-- claim the numbers prove ScrollWise improves well-being (that needs research, see the research guide);
+Don't:
+- add, round up or estimate numbers, or show a screenshot of test data;
+- claim the numbers prove that ScrollWise improves well-being. That needs a study, such as your research-mode results;
 - count team testing (switch it off on team devices first).
 
-## 8. Privacy notice and consent
+## 10. Privacy notice and consent
 
-The Privacy notice in the app (Settings → Privacy notice) explains visit counts in plain words and how to switch them off. It only mentions them once a code is set. Because GoatCounter uses no cookies, stores nothing on the visitor’s device and doesn’t store personal data, no cookie banner is shown. Visitors can still switch counting off, and Do Not Track and Global Privacy Control are respected. Rules differ between countries and schools: ask your teacher whether your school wants anything extra. If it prefers opt-in, set `ON_BY_DEFAULT = false` in `src/lib/analytics.js`: counting then stays off until a visitor switches it on.
+The Privacy notice in the app (Settings → Privacy notice) explains visit counts in plain words and how to switch them off. It only mentions them once a code is set. GoatCounter uses no cookies, stores nothing on the visitor's device and doesn't store personal data, and its makers state that no GDPR consent notice is needed. So no cookie banner is shown. Visitors can still switch counting off, and Do Not Track and Global Privacy Control are respected.
+
+Rules differ between countries and schools, and many visitors are teenagers: ask your teacher whether your school wants anything extra. If it prefers opt-in, set `ON_BY_DEFAULT = false` in `src/lib/analytics.js`. Counting then stays off until a visitor switches it on in Settings (and the numbers will be much smaller).
+
+To delete all collected data, the account owner can use GoatCounter's **Settings → Delete account**.

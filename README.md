@@ -80,7 +80,7 @@ ScrollWise is an independent student project and is not made, approved or endors
 - Optional, privacy-friendly analytics with **GoatCounter**: no cookies, no personal data, nothing stored on the visitor’s device.
 - Counts visits, where they came from (including poster campaign links such as `?utm_campaign=poster-qr`), and a few anonymous actions: reaching a stopping point, the choice made there, and starting or finishing an offline activity.
 - Never counts research mode or Demo Mode. Visitors can switch it off in Settings; Do Not Track and Global Privacy Control are respected.
-- A private **team visit report** (`/team-report/`) turns a GoatCounter export into charts for the competition video, in the browser only.
+- A private **team analytics dashboard** (`/team-report/`) turns a GoatCounter export into charts in ScrollWise’s style: visits per day or week, QR-code visits, the stopping point, offline activities and engagement over time, with date filters. It also makes 1920 × 1080 images and CSV files for the competition video. It reads the file in the browser only and shows nothing until a real export is loaded.
 - Off until the team sets its GoatCounter code. See **[`ANALYTICS.md`](ANALYTICS.md)**.
 
 ### Also included
@@ -105,7 +105,7 @@ ScrollWise is an independent student project and is not made, approved or endors
 ScrollWise/
 ├── docs/                  ← the finished website (GitHub Pages publishes this folder)
 │   ├── index.html
-│   ├── team-report/       private visit report (reads a GoatCounter export in the browser)
+│   ├── team-report/       private team analytics dashboard (reads a GoatCounter export in the browser)
 │   ├── assets/            app.js, app.css, fonts/
 │   ├── photos/            compressed feed pictures
 │   └── favicon, app icons, site.webmanifest, social-card.png
@@ -144,7 +144,7 @@ Where to change things:
 | Dashboard, Saved, Settings | `src/views/Dashboard.jsx`, `Saved.jsx`, `Settings.jsx` |
 | Research mode screens / data and CSV | `src/views/Research.jsx` / `src/lib/research.js` |
 | Visit counts: what is sent, opt-in or opt-out | `src/lib/analytics.js` (GoatCounter code: `analytics` in `package.json`) |
-| Team visit report | `public/team-report/index.html` |
+| Team analytics dashboard | `public/team-report/index.html` |
 
 ## Running it on your computer
 
@@ -213,7 +213,7 @@ See **[CREDITS.md](CREDITS.md)**: licensed photo credits (CC0, CC BY 2.0, public
 - **Research mode isn’t proof.** It gives descriptive results from small groups. Mode A repeats posts once the available ones run out.
 - **Real-device testing is still needed.** Automated tests ran in Chrome only. See [`TESTING.md`](TESTING.md).
 - **The printed poster’s QR code** (plain address, no campaign link) can’t be told apart from other direct visits. New prints should use `?utm_campaign=poster-qr` (see `ANALYTICS.md`).
-- **Visit counts** miss visitors who switch them off, use Do Not Track or block the counter, and count visits, not individual people.
+- **Visit counts** miss visitors who switch them off, use Do Not Track or block the counter, and count visits, not individual people. Unique visitors are deliberately not measured.
 - **Fonts need the internet** for the full look. Offline, a local copy of the heading font and the device’s own fonts are used.
 
 ## Maintenance

@@ -43,7 +43,9 @@ Use the 5-minute checklist in `TESTING.md` on each:
 
 ## 6. Visit counts (analytics)
 - [ ] GoatCounter account created by an adult; site code set in `package.json` → `analytics.goatcounter`; site rebuilt and published.
-- [ ] One test visit from a phone shows up in the GoatCounter dashboard.
+- [ ] In GoatCounter settings: dashboard only for logged-in users; Region unticked; Sessions ticked.
+- [ ] One test visit from a phone (`?utm_campaign=test-setup`) shows up in the GoatCounter dashboard.
+- [ ] A JSON export loads in the team dashboard (`/team-report/`).
 - [ ] Counting switched off on every team device.
 - [ ] The printed QR code checked: does it contain `?utm_campaign=`? If not, only “Direct” visits can be reported for it; new prints use the campaign link.
 - [ ] Privacy notice reviewed by a teacher (it explains visit counts once the code is set).
